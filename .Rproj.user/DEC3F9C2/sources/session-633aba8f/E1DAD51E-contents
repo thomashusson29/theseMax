@@ -1,0 +1,1174 @@
+---
+title: "Stats Thèse Max"
+author: "Thomas HUSSON"
+date: "2025-10-21"
+output:
+  html_document:
+    toc: true
+    toc_depth: '5'
+    toc_float: 
+      collapsed: false       # menu visible par défaut
+      smooth_scroll: true    # défilement doux
+    df_print: paged
+  word_document:
+    toc: true
+    toc_depth: 5
+  pdf_document:
+    toc: true
+    toc_depth: 5
+    latex_engine: xelatex
+    number_sections: true
+    includes:
+      in_header: "header-titles.tex"
+geometry: margin=2.5cm
+always_allow_html: true
+header-includes:
+- \usepackage{etoolbox}     % utile pour redéfinir \tableofcontents
+- \renewcommand{\contentsname}{}   % enlève le titre "Contents"
+- "% -- TOC compact (~1.5x plus petit) --\n\\AtBeginDocument{\n  \\addtocontents{toc}{\\protect\\smallskip}\n
+  \ \\let\\oldtableofcontents\\tableofcontents\n  \\renewcommand{\\tableofcontents}{\n
+  \   \\begingroup\n      \\footnotesize                % <- ~1.5x plus petit\n      \\setlength{\\parskip}{2pt}
+  \   % espacement entre entrées\n      \\oldtableofcontents\n    \\endgroup\n  }\n}\n"
+- \setcounter{tocdepth}{5}
+- \makeatletter
+- \renewcommand{\@tocrmarg}{0pt}
+- \makeatother
+- \usepackage{fvextra}
+- \usepackage[section]{placeins}
+- \usepackage{needspace}
+- \usepackage{float}
+- \floatplacement{figure}{H}
+- \floatplacement{table}{H}
+- \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,fontsize=\small,commandchars=\\\{\},samepage=true}
+- \newcommand{\sectionbreak}{\needspace{5\baselineskip}}
+- \setlength{\parindent}{0pt}
+- \setlength{\parskip}{4pt}
+- \usepackage[most]{tcolorbox}
+- \newtcolorbox{graybox}{colback=gray!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+- \newtcolorbox{orangebox}{colback=orange!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+- \newtcolorbox{codebox}{breakable,colback=blue!5!white,colframe=blue!50!black,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=3pt,bottom=3pt}
+- \DefineVerbatimEnvironment{CodeBoxContent}{Verbatim}{fontsize=\small,breaklines,breakanywhere}
+- \renewcommand{\thesection}{\arabic{section}}
+- \renewcommand{\thesubsection}{\thesection.\Alph{subsection}}
+- \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 8,    # largeur en pouces (~20 cm)
+  fig.height = 5,   # hauteur en pouces (~12 cm)
+  fig.align = "center",
+  out.width = "100%" # adapte automatiquement à la largeur de la page
+)
+```
+
+```{r, results='hide', message=FALSE, warning=FALSE, include=FALSE}
+# ----LIBRARY ----
+library(cardx)
+library(dplyr)
+library(readxl)
+library(ggpattern)
+library(openxlsx)
+library(tidyverse)
+library(gtsummary)
+library(magrittr)
+library(ggplot2)
+library(lubridate)
+library(ggpubr)
+library(survival)
+library(survminer)
+library(scales)
+library(summarytools)
+library(MatchIt)
+library(optmatch)
+library(purrr)
+library(officer)
+library(flextable)
+library(gt)
+library(mice)
+library(googlesheets4)
+library(cards)
+library(RItools)
+library(epiR)
+library(tableone)
+library(cobalt)
+library(broom)
+library(forcats)
+library(dlstats)
+library(pkgsearch)
+library(pROC)
+library(stats)
+library(parameters)
+library(broom.helpers)
+library(forestplot)
+library(kableExtra)
+library(rsconnect)
+library(pacman)
+library(stringr)
+```
+
+# Import de la base de données
+
+```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+gs4_deauth()
+df <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1eWwPK8G89G6nWTDzWimcCa8EOWqval8RPvwykZmfGoI/edit?gid=803820517#gid=803820517",
+  sheet = "CopieThomas"
+)
+```
+
+# Statistiques descriptives
+
+## Recodages des variables pour lisibilité
+```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+#Factor l'Âge dans le bon ordre : 
+df <- df %>%
+  mutate(`3_Age` = factor(`3_Age`,
+                          levels = c("Entre 30 et 39 ans",
+                                     "Entre 40 et 49 ans",
+                                     "Entre 50 et 59 ans",
+                                     "Entre 60 et 69 ans",
+                                     "Plus de 70 ans")))
+
+
+#Factor la durée d'installation dans le bon ordre 
+df <- df %>%
+  mutate(`6_Duree_d_installation` = factor(`6_Duree_d_installation`,
+                                           levels = c("Moins de 5 ans",
+                                                      "Entre 5 et 9 ans",
+                                                      "Entre 10 et 19 ans",
+                                                      "Plus de 20 ans")))
+
+
+
+#Factor les types d'activité dans le bon ordre 
+df <- df %>%
+  mutate(`7_Type_d_activite` = factor(`7_Type_d_activite`,
+                                      levels = c("Exclusivement libéral en cabinet",
+                                                 "Essentiellement libéral avec activité universitaire",
+                                                 "Essentiellement libéral avec activité de régulation/PDSA",
+                                                 "Mixte (libéral + hospitalière)",
+                                                 "Autre")))
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# Séparation des coordonnées (latitude / longitude)
+df <- df %>%
+  separate(`5_coordonnees_gps`, into = c("lat", "lon"), sep = ",", remove = FALSE) %>%
+  mutate(
+    lat = as.numeric(lat),
+    lon = as.numeric(lon)
+  )
+```
+
+
+## Description de chaques médecins : par graphiques
+
+### Connaissance MCS
+
+-   Variable : df$`1_Connaissance_MCS_binaire`
+
+```{r camembert connaissance, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Camembert connaissance MCS
+slices <- table(df$`1_Connaissance_MCS_binaire`)
+labels <- c("Non", "Oui")
+pct <- round(slices / sum(slices) * 100)
+labels <- paste(labels, pct) # Ajoute les pourcentages aux labels
+labels <- paste(labels, "%", sep = "") # Ajoute le symbole %
+pie(slices,
+    main = "Connaissance du réseau MCS parmi les médecins généralistes",
+    col = c("lightcoral", "lightgreen"),
+    labels = labels
+)
+```
+
+### Sexe
+
+```{r camembert sexe, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Camembert sexe
+slices <- table(df$`2_Sexe_Homme`)
+labels <- c("Homme", "Femme")
+pct <- round(slices / sum(slices) * 100)
+labels <- paste(labels, pct) # Ajoute les pourcentages aux labels
+labels <- paste(labels, "%", sep = "") # Ajoute le symbole %
+pie(slices,
+    main = "Répartition par sexe des médecins généralistes",
+    col = c("lightblue", "lightpink"),
+    labels = labels
+)
+```
+
+
+### Âge 
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Histogramme âge
+ggplot(df, aes(x = `3_Age`)) +
+  geom_bar(fill = "lightblue", color = "black") +
+  labs(title = "Répartition par âge des médecins généralistes",
+       x = "Tranche d'âge",
+       y = "Nombre de médecins") +
+  theme_minimal()
+```
+
+### Lieu d'installation : carte des répondants
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+library(leaflet)
+leaflet(df) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = ~lon,
+    lat = ~lat,
+    radius = 5,
+    color = "blue",
+    fillOpacity = 0.6,
+    popup = ~paste0("<b>Coordonnées :</b> ", `5_coordonnees_gps`)
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    colors = c("blue"),
+    labels = c("Médecins généralistes"),
+    title = "Lieu d'installation des médecins"
+  )
+```
+
+### Durée d'installation :
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Histogramme durée d'installation
+ggplot(df %>% filter(!is.na(`6_Duree_d_installation`)), aes(x = `6_Duree_d_installation`)) +
+  geom_bar(fill = "lightgray", color = "black") +
+  labs(title = "Répartition par durée d'installation des médecins généralistes",
+       x = "Durée d'installation",
+       y = "Nombre de médecins") +
+  theme_minimal()
+```
+
+
+### Type d'activité :
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Histogramme type d'activité
+ggplot(df, aes(x = `7_Type_d_activite`, fill = `7_Type_d_activite`)) +
+  geom_bar(color = "black") +
+  labs(
+    title = "Répartition par type d'activité des médecins généralistes",
+    x = NULL,
+    y = "Nombre de médecins",
+    fill = "Type d'activité"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(), # supprime le texte trop long sur l'axe
+    axis.ticks.x = element_blank(),
+    legend.position = "right",
+    legend.text = element_text(size = 8),  # légende plus petite
+    legend.title = element_text(size = 8) # titre de la légende légèrement réduit aussi
+)
+```
+
+Représentation en camembert : 
+
+```{r camembert_type_activite, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Camembert type d'activité
+library(ggplot2)
+
+# 1. Extraire les modalités (niveaux uniques)
+types <- unique(df$`7_Type_d_activite`)
+n <- length(types)
+
+# 2. Générer la même palette que ggplot
+palette_type_activite <- scales::hue_pal()(n)
+
+# Comptage
+slices <- table(df$`7_Type_d_activite`)
+pct <- round(slices / sum(slices) * 100)
+# Labels avec pourcentages
+labels <- paste0(names(slices), " (", pct, "%)")
+# Camembert avec la même palette que ggplot
+pie(slices,
+    main = "Répartition par type d'activité des médecins généralistes",
+    col = palette_type_activite,
+    labels = labels,
+    border = "black"
+)
+```
+
+### Types de visites
+
+-   Variables incluses : 8__consultations_rdv	8__consultations_sans_rdv_	8_consultations_:_creneaux_d_urgence	8_Visites	8_Cs_autre	8bis_En_cas_de_reponse_"Autre"_merci_de_preciser_[Commentaire]
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Nombre total de médecins
+n_medecins <- nrow(df)
+
+# Préparation des données
+df_long <- df %>%
+  select(starts_with("8_")) %>%   # capte toutes les colonnes "8_"
+  pivot_longer(
+    cols = everything(),
+    names_to = "Type_de_visite",
+    values_to = "Valeur"
+  ) %>%
+  filter(Valeur == 1) %>%
+  group_by(Type_de_visite) %>%
+  summarise(Count = n()) %>%
+  mutate(
+    Pourcentage = round(100 * Count / n_medecins, 1),
+    Type_de_visite = recode(
+      Type_de_visite,
+      "8__consultations_rdv" = "Consultations sur RDV",
+      "8__consultations_sans_rdv_" = "Consultations sans RDV",
+      "8_consultations_:_creneaux_d_urgence" = "Créneaux d'urgence",
+      "8_Visites" = "Visites à domicile",
+      "8_Cs_autre" = "Autres consultations"
+    ),
+    Type_de_visite = factor(
+      Type_de_visite,
+      levels = c("Consultations sur RDV",
+                 "Consultations sans RDV",
+                 "Créneaux d'urgence",
+                 "Visites à domicile",
+                 "Autres consultations")
+    )
+  )
+
+# Graphique
+ggplot(df_long, aes(x = Type_de_visite, y = Count, fill = Type_de_visite)) +
+  geom_bar(stat = "identity", color = "black", width = 0.7) +
+  geom_text(aes(label = paste0(Count, " (", Pourcentage, "%)")),
+            vjust = -0.5, size = 4) +
+  labs(
+    title = "Types de visites effectuées par les médecins généralistes",
+    x = "Type de visite",
+    y = "Nombre de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    legend.position = "none"
+  )
+```
+
+
+### Ressenti sur le délai d'intervention du SMUR :
+
+-   Variable : df$`9_Ressenti_delai_SMUR`
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Palette de couleurs cohérente
+palette_ressenti <- c(
+  "Délai ok" = "#7ED957",                      # vert clair
+  "Plutôt bien mais parfois gêné" = "#FFC94A", # orange doux
+  "Délai trop long, en difficulté" = "#FF6B6B",# rouge
+  "Autre" = "grey70"                           # gris neutre
+)
+
+# Calcul des pourcentages avec ordre défini, en excluant les NA
+df_plot <- df %>%
+  filter(!is.na(`9_Ressenti_delai_SMUR`)) %>%
+  count(`9_Ressenti_delai_SMUR`) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    `9_Ressenti_delai_SMUR` = factor(
+      `9_Ressenti_delai_SMUR`,
+      levels = c(
+        "Délai ok",
+        "Plutôt bien mais parfois gêné",
+        "Délai trop long, en difficulté",
+        "Autre"
+      )
+    )
+  )
+
+# Graphique final dans l'ordre voulu
+ggplot(df_plot, aes(x = `9_Ressenti_delai_SMUR`, y = pct, fill = `9_Ressenti_delai_SMUR`)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = palette_ressenti, guide = "none") +
+  labs(
+    title = "Ressenti des médecins sur le délai d'intervention du SMUR",
+    x = "Ressenti du délai",
+    y = "Pourcentage de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+
+```
+
+
+-   **AUTRES** : représentés par : 
+
+    -   "*Pas ou peu d'urgences vraies. Pour la semi urgence, on a toujours réussi à se dépatouiller : amélioration de l'état clinique par les médicaments sur place ou récupérés à la pharma en urgence par la famille ou alors transport hospitalier ""rapide"" 0 médicalisé par la famille. Par contre en cas d'urgence réelle, je pressens que l'équation pourrait être problématique.*"
+
+    -   "*Il y a un cabinet qui gère les urgences à 50 mètres du mien*"
+
+    -   "*Délai de prise en charge fortement modulé selon l'utilisation de l'hélicoptère ou 0, intérêt+++ de la télé médecine au sein du CH de Cilaos*"
+
+
+    -   "*les délais sont longs mais la perception dépend de l'urgence*"
+
+#### Idem mais camembert avec mêmes couleurs
+
+-   Variable : df$`9_Ressenti_delai_SMUR`
+
+```{r camembert, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Palette de couleurs cohérente
+palette_ressenti <- c(
+  "Délai ok" = "#7ED957",                      # vert clair
+  "Plutôt bien mais parfois gêné" = "#FFC94A", # orange doux
+  "Délai trop long, en difficulté" = "#FF6B6B",# rouge
+  "Autre" = "grey70"                           # gris neutre
+)
+
+# Comptage
+slices <- table(df$`9_Ressenti_delai_SMUR`)
+pct <- round(slices / sum(slices) * 100)
+# Labels avec pourcentages
+labels <- paste0(names(slices), " (", pct, "%)")
+# Camembert avec la palette définie
+pie(slices,
+    main = "Ressenti des médecins sur le délai d'intervention du SMUR",
+    col = palette_ressenti[names(slices)],
+    labels = labels,
+    border = "black"
+)
+```
+
+#### Carte
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Palette des couleurs
+palette_ressenti <- c(
+  "Délai ok" = "#7ED957",                      # vert clair
+  "Plutôt bien mais parfois gêné" = "#FFC94A", # orange doux
+  "Délai trop long, en difficulté" = "#FF6B6B",# rouge
+  "Autre" = "grey70"                           # gris neutre
+)
+
+library(leaflet)
+library(dplyr)
+
+# Nettoyage des coordonnées invalides
+df <- df %>% filter(!is.na(lat), !is.na(lon))
+
+# Carte avec fond grisé
+leaflet(df) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%  # fond gris clair
+  addCircleMarkers(
+    lng = ~lon,
+    lat = ~lat,
+    radius = 5,
+    color = ~ifelse(`9_Ressenti_delai_SMUR` %in% names(palette_ressenti),
+                    palette_ressenti[`9_Ressenti_delai_SMUR`],
+                    palette_ressenti["Autre"]),
+    fillOpacity = 0.6,
+    popup = ~paste0(
+      "<b>Ressenti :</b> ", `9_Ressenti_delai_SMUR`, "<br>",
+      "<b>Coordonnées :</b> ", `5_coordonnees_gps`
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    colors = palette_ressenti,
+    labels = names(palette_ressenti),
+    title = "Ressenti sur le délai"
+  )
+```
+
+### Perte de chance dans le secteur liée au délai d'intervention du SMUR
+
+#### Histogramme
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Palette de couleurs du bleu (non) au rouge (oui)
+palette_perte_chance <- c(
+  "non, pas du tout" = "#6BD6FF",
+  "Plutôt non" = "#A5E887",
+  "Plutôt oui" = "#FFD966",
+  "oui, tout à fait" = "#FF6B6B"
+)
+
+# Calcul des pourcentages + ordre + suppression des NA
+df_plot <- df %>%
+  filter(!is.na(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`)) %>%
+  count(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur` = factor(
+      `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`,
+      levels = c("non, pas du tout", "Plutôt non", "Plutôt oui", "oui, tout à fait")
+    )
+  )
+
+# Graphique
+ggplot(
+  df_plot,
+  aes(x = `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`,
+      y = pct,
+      fill = `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`)
+) +
+  geom_col(color = "black") +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = palette_perte_chance, guide = "none") +
+  labs(
+    title = "Perte de chance perçue par les médecins liée au délai d'intervention du SMUR (excluant les NA)",
+    x = "Perte de chance perçue",
+    y = "Pourcentage de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+```
+
+#### Camembert 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# Palette de couleurs du bleu (non) au rouge (oui)
+palette_perte_chance <- c(
+  "non, pas du tout" = "#6BD6FF",
+  "Plutôt non" = "#A5E887",
+  "Plutôt oui" = "#FFD966",
+  "oui, tout à fait" = "#FF6B6B"
+)
+
+# Comptage
+slices <- table(df$`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`)
+pct <- round(slices / sum(slices) * 100)
+# Labels avec pourcentages
+labels <- paste0(names(slices), " (", pct, "%)")
+# Camembert avec la palette définie
+pie(slices,
+    main = "Perte de chance perçue liée au délai d'intervention du SMUR",
+    col = palette_perte_chance[names(slices)],
+    labels = labels,
+    border = "black"
+)
+```
+
+
+#### Carte
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#palette : 
+palette_perte_chance <- c(
+  "non, pas du tout" = "#6BD6FF",
+  "Plutôt non" = "#A5E887",
+  "Plutôt oui" = "#FFD966",
+  "oui, tout à fait" = "#FF6B6B"
+)
+
+# Carte avec fond grisé
+leaflet(df) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%  # fond gris clair
+  addCircleMarkers(
+    lng = ~lon,
+    lat = ~lat,
+    radius = 5,
+    color = ~ifelse(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur` %in% names(palette_perte_chance),
+                    palette_perte_chance[`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`],
+                    "grey70"),
+    fillOpacity = 0.6,
+    popup = ~paste0(
+      "<b>Perte de chance :</b> ", `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`, "<br>",
+      "<b>Coordonnées :</b> ", `5_coordonnees_gps`
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    colors = palette_perte_chance,
+    labels = names(palette_perte_chance),
+    title = "Perte de chance perçue"
+  )
+```
+
+#### Tableau récapitulatif
+
+2 colonnes incluses : 
+
+-   `9_Ressenti_delai_SMUR``
+
+-   `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur``
+
+```{r}
+cols_to_include2 <- c(
+  "9_Ressenti_delai_SMUR",
+  "10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur"
+)
+	
+#Ordonner les facteurs pour lisibilité
+df <- df %>%
+  mutate(`9_Ressenti_delai_SMUR` = factor(`9_Ressenti_delai_SMUR`,
+                                          levels = c("Délai ok",
+                                                     "Plutôt bien mais parfois gêné",
+                                                     "Délai trop long, en difficulté",
+                                                     "Autre")))
+df <- df %>%
+  mutate(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur` = factor(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`,
+                                                                                   levels = c("non, pas du tout","Plutôt non","Plutôt oui","oui, tout à fait")))
+
+table2 <- df %>% 
+  tbl_summary(
+    include = all_of(cols_to_include2), # colonnes à inclure
+    statistic = list(
+      all_categorical() ~ "{n} ({p}%)" # n (%) pour les variables catégorielles
+    ),
+    label = list(
+      `9_Ressenti_delai_SMUR` = "Ressenti sur le délai d'intervention du SMUR",
+      `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur` = "Perte de chance dans votre secteur liée au délai d'intervention"
+    ),
+    missing = "no" # ne pas inclure les valeurs manquantes dans le tableau
+  ) %>%
+  modify_header(label = "**Caractéristiques**") %>% # modifier l'en-tête de la colonne des labels
+  bold_labels() # mettre en gras les labels des variables
+
+table2
+```
+
+
+#### Perte de chance binaire liée au délai d'intervention
+
+
+```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+slices <- table(df$`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur_binaire`)
+labels <- c("Non", "Oui")
+pct <- round(slices / sum(slices) * 100)
+labels <- paste(labels, pct) # Ajoute les pourcentages aux labels
+labels <- paste(labels, "%", sep = "") # Ajoute le symbole %
+pie(slices,
+    main = "Perte de chance binaire liée au délai d'intervention",
+    col = c("lightcoral", "lightgreen"),
+    labels = labels
+)
+```
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+df <- df %>%
+  mutate(
+    iso = factor(`4_Profession_isolee`, levels = c(0, 1),
+                 labels = c("Non isolé", "Isolé")),
+    ressenti4 = fct_relevel(
+      factor(`9_Ressenti_delai_SMUR`),
+      "Délai ok",
+      "Plutôt bien mais parfois gêné",
+      "Délai trop long, en difficulté",
+      "Autre"
+    ),
+    ressenti_bin = if_else(
+      `9_Ressenti_delai_SMUR` %in% c("Plutôt bien mais parfois gêné",
+                                     "Délai trop long, en difficulté"),
+      1L, 0L
+    ),
+    perte_cat = fct_relevel(
+      factor(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur`),
+      "non, pas du tout", "Plutôt non", "Plutôt oui", "oui, tout à fait"
+    ),
+    perte_bin = if_else(
+      perte_cat %in% c("Plutôt oui", "oui, tout à fait"), 1L, 0L
+    )
+  )
+```
+
+### Réseau MCS est-il pertinent pour la Réunion ?
+
+#### Histogramme
+
+-   Variable : df$`11_Reseau_MCS_pertinent_pour_La_Reunion`
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+#Palette de couleurs
+palette_pertinent <- c(
+  "non, pas du tout" = "#FF6B6B",   # rouge
+  "Plutôt non" = "#FFA500",        # orange
+  "Plutôt oui" = "#A5E887",        # vert doux
+  "oui, tout à fait" = "#7ED957"   # vert clair
+)
+
+# Calcul des pourcentages + ordre + exclusion NA
+df_plot <- df %>%
+  filter(!is.na(`11_Reseau_MCS_pertinent_pour_La_Reunion`)) %>%
+  count(`11_Reseau_MCS_pertinent_pour_La_Reunion`) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    `11_Reseau_MCS_pertinent_pour_La_Reunion` = factor(
+      `11_Reseau_MCS_pertinent_pour_La_Reunion`,
+      levels = c("non, pas du tout", "Plutôt non", "Plutôt oui", "oui, tout à fait")
+    )
+  )
+
+# Graphique final
+ggplot(
+  df_plot,
+  aes(x = `11_Reseau_MCS_pertinent_pour_La_Reunion`,
+      y = pct,
+      fill = `11_Reseau_MCS_pertinent_pour_La_Reunion`)
+) +
+  geom_col(color = "black") +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = palette_pertinent, guide = "none") +
+  labs(
+    title = "Pertinence perçue du réseau MCS pour La Réunion",
+    x = "Pertinence perçue",
+    y = "Pourcentage de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1)
+  )
+```
+#### Camembert
+
+-   Variable : df$`11_Reseau_MCS_pertinent_pour_La_Reunion`
+
+```{r camembert pertinent, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+# Palette de couleurs ordonnée
+palette_pertinent <- c(
+  "non, pas du tout" = "#FF6B6B",   # rouge
+  "Plutôt non"       = "#FFA500",   # orange
+  "Plutôt oui"       = "#A5E887",   # vert doux
+  "oui, tout à fait" = "#7ED957"    # vert clair
+)
+
+# Comptage avec ordre imposé
+slices <- table(factor(df$`11_Reseau_MCS_pertinent_pour_La_Reunion`,
+                       levels = names(palette_pertinent)))
+
+# Calcul des pourcentages
+pct <- round(slices / sum(slices) * 100)
+
+# Labels avec pourcentages
+labels <- paste0(names(slices), " (", pct, "%)")
+
+# Camembert ordonné
+pie(slices,
+    main = "Pertinence perçue du réseau MCS pour La Réunion",
+    col = palette_pertinent[names(slices)],
+    labels = labels,
+    border = "black"
+)
+```
+
+### Délai depuis dernière formation aux soins d'urgences
+
+-   Variable df$`12_Dernieres_formations_d_urgence` 
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+# Palette de couleurs du bleu clair au bleu foncé
+palette_formation <- c(
+  "<2 ans" = "#6BD6FF",   # bleu clair
+  "2-5 ans" = "#4A90E2",  # bleu moyen
+  "6-10 ans" = "#0033CC", # bleu foncé
+  ">10 ans" = "#001F66"   # bleu très foncé
+)
+
+# Calcul des pourcentages + ordre + exclusion NA
+df_plot <- df %>%
+  filter(!is.na(`12_Dernieres_formations_d_urgence`)) %>%
+  count(`12_Dernieres_formations_d_urgence`) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    `12_Dernieres_formations_d_urgence` = factor(
+      `12_Dernieres_formations_d_urgence`,
+      levels = c("<2 ans", "2-5 ans", "6-10 ans", ">10 ans")
+    )
+  )
+
+# Graphique final
+ggplot(
+  df_plot,
+  aes(x = `12_Dernieres_formations_d_urgence`,
+      y = pct,
+      fill = `12_Dernieres_formations_d_urgence`)
+) +
+  geom_col(color = "black") +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = palette_formation, guide = "none") +
+  labs(
+    title = "Délai depuis la dernière formation aux soins d'urgence",
+    x = "Délai depuis la dernière formation",
+    y = "Pourcentage de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+**Visualisation du rapport entre l'Âge ()df$`3_Age` et le délai depuis la dernière formation aux soins d'urgence (df$`12_Dernieres_formations_d_urgence`)**
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+# Palette de bleus pour les délais
+palette_formation <- c(
+  "<2 ans" = "#6BD6FF",   # bleu clair
+  "2-5 ans" = "#4A90E2",  # bleu moyen
+  "6-10 ans" = "#0033CC", # bleu foncé
+  ">10 ans" = "#001F66"   # bleu très foncé
+)
+
+# Diagramme en barres empilées avec ordre des niveaux
+ggplot(
+  df %>%
+    filter(!is.na(`3_Age`) & !is.na(`12_Dernieres_formations_d_urgence`)) %>%
+    mutate(`12_Dernieres_formations_d_urgence` = factor(
+      `12_Dernieres_formations_d_urgence`,
+      levels = c("<2 ans", "2-5 ans", "6-10 ans", ">10 ans")
+    )),
+  aes(x = `3_Age`, fill = `12_Dernieres_formations_d_urgence`)
+) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = palette_formation) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Répartition du délai depuis la dernière formation aux soins d'urgence selon l'âge des médecins",
+    x = "Tranche d'âge",
+    y = "Proportion de médecins",
+    fill = "Délai depuis la dernière formation"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8)
+  )
+```
+\
+\
+
+**Autres visualisations pour monsieur**
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+ggplot(
+  df %>%
+    filter(!is.na(`3_Age`) & !is.na(`12_Dernieres_formations_d_urgence`)) %>%
+    mutate(`12_Dernieres_formations_d_urgence` = factor(
+      `12_Dernieres_formations_d_urgence`,
+      levels = c("<2 ans", "2-5 ans", "6-10 ans", ">10 ans")
+    )),
+  aes(x = `3_Age`, fill = `12_Dernieres_formations_d_urgence`)
+) +
+  geom_bar(position = position_dodge(width = 0.8), color = "black") +
+  scale_fill_manual(values = palette_formation) +
+  labs(
+    title = "Délai depuis la dernière formation selon la tranche d'âge",
+    x = "Tranche d'âge",
+    y = "Nombre de médecins",
+    fill = "Délai depuis la dernière formation"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+```
+
+
+
+#### Cabinet adapté aux urgences
+
+-   Variable df$`13_Cabinet_adapte_aux_urgences`
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+# Palette de couleurs du orange clair au rouge 
+palette_cabinet <- c(
+  "non, pas du tout" = "#FFD8A8",   # orange très clair (pastel)
+  "Plutôt non"       = "#FFB347",   # orange moyen
+  "Plutôt oui"       = "#FF8C42",   # orange foncé
+  "oui, tout à fait" = "#E63946"    # rouge soutenu
+)
+
+# Calcul des pourcentages + ordre + exclusion NA
+df_plot <- df %>%
+  filter(!is.na(`13_Cabinet_adapte_aux_urgences`)) %>%
+  count(`13_Cabinet_adapte_aux_urgences`) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    `13_Cabinet_adapte_aux_urgences` = factor(
+      `13_Cabinet_adapte_aux_urgences`,
+      levels = c("non, pas du tout", "Plutôt non", "Plutôt oui", "oui, tout à fait")
+    )
+  )
+
+# Graphique final
+ggplot(
+  df_plot,
+  aes(x = `13_Cabinet_adapte_aux_urgences`,
+      y = pct,
+      fill = `13_Cabinet_adapte_aux_urgences`)
+) +
+  geom_col(color = "black") +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = palette_cabinet, guide = "none") +
+  labs(
+    title = "Adaptation perçue du cabinet aux urgences",
+    x = "Adaptation perçue",
+    y = "Pourcentage de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+
+
+#### Intérêt pour une formation complémentaire en urgence
+
+-   Variable : df$`14_Interet_pour_formation_complementaire_en_urgence`
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+# Palette de couleurs du violet clair au violet foncé
+palette_formation_urgence <- c(
+  "non, pas du tout" = "#D8B4FE",   # violet très clair (pastel)
+  "Plutôt non"       = "#A78BFA",   # violet clair
+  "Plutôt oui"       = "#7C3AED",   # violet moyen
+  "oui, tout à fait" = "#5B21B6"    # violet foncé
+)
+
+# Calcul des pourcentages + ordre + exclusion NA
+df_plot <- df %>%
+  filter(!is.na(`14_Interet_pour_formation_complementaire_en_urgence`)) %>%
+  count(`14_Interet_pour_formation_complementaire_en_urgence`) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    `14_Interet_pour_formation_complementaire_en_urgence` = factor(
+      `14_Interet_pour_formation_complementaire_en_urgence`,
+      levels = c("non, pas du tout", "Plutôt non", "Plutôt oui", "oui, tout à fait")
+    )
+  )
+
+# Graphique final
+ggplot(
+  df_plot,
+  aes(x = `14_Interet_pour_formation_complementaire_en_urgence`,
+      y = pct,
+      fill = `14_Interet_pour_formation_complementaire_en_urgence`)
+) +
+  geom_col(color = "black") +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = palette_formation_urgence, guide = "none") +
+  labs(
+    title = "Intérêt pour une formation complémentaire en urgence",
+    x = "Intérêt perçu",
+    y = "Pourcentage de médecins"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+
+## Tableau 1 : Caractéristiques démographiques et professionnelles des médecins généralistes selon le mode d'exercice
+```{r table1, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+cols_to_include1 <- c(
+  "1_Connaissance_MCS_binaire",
+  "2_Sexe_Homme",
+  "3_Age",
+  "6_Duree_d_installation",
+  "7_Type_d_activite",
+  "8__consultations_rdv",
+  "8__consultations_sans_rdv_",
+  "8_Visites",
+  "8_Cs_autre"
+)
+
+table1 <- df %>% 
+  tbl_summary(
+    include = all_of(cols_to_include1), # colonnes à inclure
+    statistic = list(
+      all_continuous() ~ "{median} ({IQR})",
+      all_categorical() ~ "{n} ({p}%)" # n (%) pour les variables catégorielles
+    ),
+    digits = all_continuous() ~ 2, # nombre de décimales pour les variables continues
+    label = list(
+      `1_Connaissance_MCS_binaire` = "Connaissance du réseau MCS",
+      `2_Sexe_Homme` = "Sexe (Homme)",
+      `3_Age` = "Âge",
+      `6_Duree_d_installation` = "Durée d'installation (années)",
+      `7_Type_d_activite` = "Type d'activité",
+      `8__consultations_rdv` = "Consultations avec rendez-vous",
+      `8__consultations_sans_rdv_` = "Consultations sans rendez-vous",
+      `8_Visites` = "Visites",
+      `8_Cs_autre` = "Autres consultations"
+    ),
+    missing = "no" # ne pas inclure les valeurs manquantes dans le tableau
+  ) %>%
+  modify_header(label = "**Caractéristiques**") %>% # modifier l'en-tête de la colonne des labels
+  bold_labels() # mettre en gras les labels des variables
+
+table1
+```
+
+
+
+# Comparaison sur CJP : différences entre interessé et non interessé
+
+-   CJP : recodé en `df$CJP` codé "1"
+
+-   Utiliser le recodage binaire pour interprétation plus facile :
+
+    -   connaissance <- df$`1_Connaissance_MCS_binaire`
+    
+    -   age <- df$`3_Age_inf_50a
+    
+    -   sexe <- df$`2_Sexe_Homme`
+    
+    -   profession_isolee <- df$`4_Profession_isolee`
+    
+    -   duree_installation <- df$`6_Duree_d_installation_inf_10ans`
+
+    -   activite_autre <- df$`7_Activite_autre_que_liberal_exclusif`
+    
+    -   ressenti_delai <- df$`9_Ressenti_delai_SMUR_genee_YN`
+    
+    -   perte_chance <- df$`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur_binaire`
+
+```{r table2, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+cols_to_include3 <- c(
+  "1_Connaissance_MCS_binaire",
+  "3_Age_inf_50a",
+  "2_Sexe_Homme",
+  "6_Duree_d_installation_inf_10ans",
+  "7_Activite_autre_que_liberal_exclusif",
+  "8__consultations_rdv",
+  "8__consultations_sans_rdv_",
+  "8_Visites",
+  "8_Cs_autre",
+  "9_Ressenti_delai_SMUR_genee_YN",
+  "10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur_binaire",
+  "12_Dernieres_formations_d_urgence_<_5_ans_binaire_interet",
+  "13_Cabinet_adapte_aux_urgences_binaire",
+  "14_Interêt_pour_formation_complementaire_en_urgence_binaire"
+)
+
+table1 <- df %>% 
+  mutate(`19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU` = ifelse(`19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU` == 1, "Intéressé par MCS", "Non intéressé par MCS")) %>%
+  tbl_summary(
+    include = all_of(cols_to_include3), # colonnes à inclure
+    by = "19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU", # variable de regroupement,
+    statistic = list(
+      all_continuous() ~ "{median} ({IQR})",
+      all_categorical() ~ "{n} ({p}%)" # n (%) pour les variables catégorielles
+    ),
+    digits = all_continuous() ~ 2, # nombre de décimales pour les variables continues
+    label = list(
+      `1_Connaissance_MCS_binaire` = "Connaissance du dispositif MCS",
+      `3_Age_inf_50a` = "Âge inférieur à 50 ans",
+      `2_Sexe_Homme` = "Sexe (Homme)",
+      `6_Duree_d_installation_inf_10ans` = "Durée d'installation inférieure à 10 ans",
+      `7_Activite_autre_que_liberal_exclusif` = "Activité autre que libéral exclusif",
+      `8__consultations_rdv` = "Consultations avec rendez-vous",
+      `8__consultations_sans_rdv_` = "Consultations sans rendez-vous",
+      `8_Visites` = "Visites",
+      `8_Cs_autre` = "Autres consultations",
+      `9_Ressenti_delai_SMUR_genee_YN` = "Ressenti du délai d'intervention du SMUR gêné",
+      `10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur_binaire` = "Perte de chance liée au délai d'intervention (binaire)",
+      `12_Dernieres_formations_d_urgence_<_5_ans_binaire_interet` = "Dernière formation aux soins d'urgence < 5 ans (binaire)",
+      `13_Cabinet_adapte_aux_urgences_binaire` = "Cabinet adapté aux urgences (binaire)",
+      `14_Interêt_pour_formation_complementaire_en_urgence_binaire` = "Intérêt pour une formation complémentaire en urgence (binaire)"
+    ),
+    missing = "no" # ne pas inclure les valeurs manquantes dans le tableau
+  ) %>%
+  modify_header(label = "**Caractéristiques**") %>% # modifier l'en-tête de la colonne des labels
+  bold_labels() %>%  # mettre en gras les labels des variables 
+  add_p() # ajouter les p-values pour chaque variable
+
+#faire le même tableau mais remplacer 0 et 1 de CJP par "Non intéressé" et "Intéressé"
+
+
+
+table1
+```
+
+-   Je trouve ce tableau interessant !
+
+-   Les médecins interssés par être MCS sont significativement :
+
+    -   Plus gêné par le délai d'intervention du SMUR (p < 0.029)
+    
+    -   Ont un cabinet + adapté aux urgences p < 0.05)
+    
+    -   Sont + intéressés par une formation complémentaire en urgence (p < 0.001)
+    
+    -   Et d'autres trucs mais regarde
+    
+Ce tableau est top mais ne permet pas vraiment de **QUANTIFIER** à quel point ces facteurs sont associés à l'intérêt pour devenir MCS.
+
+
+*# Analyse univariée sur facteurs associés à l'intérêt pour devenir MCS (CJP)
+
+-   Principe de l'analyse univariée : on compare les caractéristiques des médecins selon leur intérêt (oui/non) pour devenir médecin correspondant du SAMU dans le cadre du dispositif MCS.
+
+-  Variable d'intérêt : `df$CJP` (intérêt pour devenir MCS)
+
+-   Interprétation :de l'analyse :
+
+    -   Pour chaque variable, on compare la répartition entre les médecins intéressés et non intéressés.
+    
+    -   Les p-values indiquent si les différences observées sont statistiquement significatives.
+    
+    -   Cela permet d'identifier les facteurs potentiellement associés à l'intérêt pour devenir MCS.
+    
+-   Différence avec une multivariée : 
+
+    -   L'analyse univariée examine chaque variable indépendamment, tandis que la multivariée ajuste pour plusieurs variables simultanément.
+    
+    -   La multivariée permet d'identifier les facteurs indépendamment associés à l'intérêt pour devenir MCS, en tenant compte des interactions entre variables.
+    
+    -   Les résultats peuvent différer entre les deux analyses en raison de la prise en compte des confounders dans la multivariée.
+    
+    -   L'univariée est souvent une étape préliminaire avant la multivariée pour sélectionner les variables à inclure.
+    
+    -   En résumé, l'univariée identifie des associations potentielles, tandis que la multivariée évalue les associations indépendantes.
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#recodage de la variable d'intérêt CJP
+df$CJP <- df$`19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU`
+```
+
+# Visualisations supplémentaires*
+
+
+
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+library(leaflet)
+library(dplyr)
+
+# Création d'une variable couleur selon CJP
+df <- df %>%
+  mutate(
+    color_cjp = ifelse(df$`19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU` == 1, "green", "red"),
+    # Légère "jitterisation" pour séparer visuellement les points superposés
+    lat_jit = jitter(lat, factor = 0.0005),
+    lon_jit = jitter(lon, factor = 0.0005)
+  )
+
+# Carte Leaflet
+leaflet(df) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = ~lon_jit,
+    lat = ~lat_jit,
+    radius = 6,
+    color = ~color_cjp,
+    stroke = TRUE,
+    fillOpacity = 0.5,
+    popup = ~paste0(
+      "<b>Coordonnées :</b> ", `5_coordonnees_gps`, "<br>",
+      "<b>CJP :</b> ", df$`19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU`
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    colors = c("red", "green"),
+    labels = c("Pas interessé", "Interessé"),
+    title = "Intérêt MCS"
+  )
+```
+
+
+
+
+

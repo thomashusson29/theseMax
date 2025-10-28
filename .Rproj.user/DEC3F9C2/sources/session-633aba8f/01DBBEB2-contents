@@ -1,0 +1,1628 @@
+---
+title: "TP Retinol"
+author: "Thomas HUSSON"
+date: "2025-10-21"
+output:
+  word_document:
+    toc: true
+    toc_depth: '5'
+  pdf_document:
+    toc: true
+    toc_depth: 5
+    latex_engine: xelatex
+    number_sections: true
+    includes:
+      in_header: "header-titles.tex"
+geometry: margin=2.5cm
+header-includes:
+- \usepackage{etoolbox}     % utile pour redéfinir \tableofcontents
+- \renewcommand{\contentsname}{}   % enlève le titre "Contents"
+- "% -- TOC compact (~1.5x plus petit) --\n\\AtBeginDocument{%\n  \\addtocontents{toc}{\\protect\\smallskip}%\n
+  \ \\let\\oldtableofcontents\\tableofcontents\n  \\renewcommand{\\tableofcontents}{%\n
+  \   \\begingroup\n      \\footnotesize                % <- ~1.5x plus petit\n      \\setlength{\\parskip}{2pt}
+  \   % espacement entre entrées\n      \\oldtableofcontents\n    \\endgroup\n  }%\n}\n"
+- \setcounter{tocdepth}{5}
+- \makeatletter
+- \renewcommand{\@tocrmarg}{0pt}
+- \makeatother
+- \usepackage{fvextra}
+- \usepackage[section]{placeins}
+- \usepackage{needspace}
+- \usepackage{float}
+- \floatplacement{figure}{H}
+- \floatplacement{table}{H}
+- \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,fontsize=\small,commandchars=\\\{\},samepage=true}
+- \newcommand{\sectionbreak}{\needspace{5\baselineskip}}
+- \setlength{\parindent}{0pt}
+- \setlength{\parskip}{4pt}
+- \usepackage[most]{tcolorbox}
+- \newtcolorbox{graybox}{colback=gray!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+- \newtcolorbox{orangebox}{colback=orange!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+- \newtcolorbox{codebox}{breakable,colback=blue!5!white,colframe=blue!50!black,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=3pt,bottom=3pt}
+- \DefineVerbatimEnvironment{CodeBoxContent}{Verbatim}{fontsize=\small,breaklines,breakanywhere}
+- \renewcommand{\thesection}{\arabic{section}}
+- \renewcommand{\thesubsection}{\thesection.\Alph{subsection}}
+- \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+```
+
+```{=latex}
+\begin{graybox}
+La variable \textit{alcool} présente une valeur extrême peu plausible (203 unités par semaine).  
+Ne sachant qu’en faire, nous l’avons laissée (cela supprimerait un patient entier sinon).  
+Pour la supprimer : le code crée un dataframe spécifique appelé \texttt{TPretinol\_csv\_sans\_alcool}.
+\end{graybox}
+```
+
+```{=latex}
+\begin{orangebox}
+
+UTILISATION DE L'IA
+
+
+
+L'IA (LLM) a été utilisé à plusieurs reprises dans la constitution de ce document : 
+
+-   En cas de message d'erreur incoercible et incompréhensible de Rstudio
+
+-   Pour vérification de la syntaxe de R
+
+-   Pour vérification de l'exactitude du texte (surtout reformulation de phrases maladroites)
+
+-   Pour aide à la conversion R markdown vers PDF
+
+-   Assistant IA utilisés : ChatGPT et Copilot
+
+\end{orangebox}
+```
+
+\newpage
+
+# Chargement des données
+
+```{r}
+TPretinol_csv <- read.csv2("TPretinol.csv", stringsAsFactors = FALSE)
+```
+
+# Introduction {#introduction}
+
+-   Données recueillies de transversalement sur 3 ans chez 315 patients.
+
+-   Tous avaient une biopsie ou exérèse d'une lésion bénigne (colique, pulmonaire, cutanée, utérine, ovarienne ou mammaire).
+
+-   Variables démographiques et biologiques.
+
+-   14 critères disponibles, analyse centrée sur 9 d'entre eux.
+
+-   Aucune donnée manquante.
+
+-   Objectif : étudier la variation du rétinol plasmatique selon les huit autres variables explicatives.
+
+Énoncé : Relations entre :
+
+-   la concentration plasmatique en rétinol (variable expliquée) (`TPretinol_csv$retplasma`)
+
+-   et les variables explicatives :
+
+-   âge (`TPretinol_csv$age`)
+
+-   sexe, (`TPretinol_csv$sexe`)
+
+-   BMI (indice d'obésité) (`TPretinol_csv$bmi`)
+
+-   tabagisme, (`TPretinol_csv$tabac`)
+
+-   consommation alimentaire de vitamines, (`TPretinol_csv$vitamine`)
+
+-   de cholestérol, (`TPretinol_csv$cholesterol`)
+
+-   d'alcool (`TPretinol_csv$alcool`)
+
+-   et de rétinol. (`TPretinol_csv$retdiet`) \newpage
+
+# Question 1 : Description des données
+
+```{r}
+str(TPretinol_csv)
+```
+
+Le jeu de données "`TPretinol_csv`" contient des variables qualitatives et quantitatives.
+
+-   Pour les variables quantitatives (age, BMI, calories, graisses, fibres, alcool, cholesterol, betadiet, retdiet, betaplasma, retplasma) : affichage moyenne, médiane, Q1-Q3 et distribution (QQplot et histogramme)
+
+-   Pour les variables qualitatives (sexe, tabac, vitamine) : affichage proportion et %
+
+-   On utilise la fonction `summary()` pour obtenir un résumé statistique des variables du jeu de données.
+
+```{r}
+#fonction summary() : résumé statistique des variables du jeu de données
+summary(TPretinol_csv)
+```
+
+\newpage
+
+## Variable expliquée : la concentration plasmatique en rétinol (retplasma)
+
+-   Variable expliquée : concentration de rétinol plasmatique, exprimée en ng/mL.
+
+-   Dans le tableur : correspond à la variable `TPretinol_csv$retplasma`
+
+-   Variable quantitative continue, caractérisée par sa moyenne, sa médiane, son écart-type, et ses valeurs extrêmes
+
+-   La fonction `summary` permet d'obtenir un résumé statistique de cette variable, mais ne fournit pas l'écart type.
+
+-   Il faut donc le calculer avec la fonction `sd()`.
+
+```{r}
+summary(TPretinol_csv$retplasma)
+sd(TPretinol_csv$retplasma) # calcule l'ecart-type
+```
+
+**Résultats :**
+
+-   Moyenne : 608.8 ng/mL
+-   Médiane : 566 ng/mL
+-   Ecart-type : 208.9 ng/mL
+-   Q1-Q3 : 466 - 716 ng/mL
+-   Minimum : 179 ng/mL
+-   Maximum : 1727 ng/mL
+
+**Distribution des données** :
+
+Histogramme :
+
+-   La création d'un histogramme dans R utilise la fonction `hist()`.
+
+-   La syntaxe est `hist(nom_de_la_variable, main="Titre de l'histogramme", xlab="Label de l'axe x", ylab="Label de l'axe y")`.
+
+    -   `nom_de_la_variable` : la variable pour laquelle on veut créer l'histogramme : ici : `TPretinol_csv$retplasma`
+
+    -   `main` : le titre de l'histogramme.
+
+    -   `xlab` : le label de l'axe des x : ici : "Rétinol plasmatique (ng/mL)".
+
+    -   `ylab` : le label de l'axe des y : ici : "Effectif".
+
+-   Interprétation : permet de visualiser la distribution des données.
+
+```{r}
+hist(
+  TPretinol_csv$retplasma, #nom de la variable
+  main="Histogramme : concentration du rétinol plasmatique", #titre du graphique
+  xlab="Rétinol plasmatique (ng/mL)", #label de l'axe des X
+  ylab = "Effectif" #label de l'axe des Y
+  )
+```
+
+QQplot :
+
+-   La création d'un QQplot dans R utilise la fonction `qqnorm()` pour tracer les points, et `qqline()` pour ajouter une ligne de référence.
+
+-   La syntaxe est `qqnorm(nom_de_la_variable, main="Titre du QQplot")` pour tracer les points, et `qqline(nom_de_la_variable)` pour ajouter la ligne de référence.
+
+-   Inteprétation : si les points suivent la ligne droite, la distribution est normale.
+
+```{r}
+qqnorm(TPretinol_csv$retplasma, main="QQplot de la concentration du rétinol plasmatique")
+qqline(TPretinol_csv$retplasma)
+```
+
+La distribution semble normale.
+
+\newpage
+
+## Variables explicatives {#variables-explicatives}
+
+D'après l'inspection de la base de données (*cf* `str(TPretinol_csv)`et `summary(TPretinol_csv)`) :
+
+*8 variables explicatives* : - 5 variables quantitatives continues : age, BMI, calories, graisses, fibres, alcool, cholesterol - 3 variables qualitatives : sexe, tabac, vitamine
+
+### Variables quantitatives continues {#variables-quantitatives-continues}
+
+#### Âge {#âge}
+
+-   Variable quantitative discrète exprimée en *années*
+
+[**Description des données**]{.underline} :
+
+```{r}
+summary(TPretinol_csv$age)
+sd(TPretinol_csv$age)
+```
+
+**Résultats** :
+
+-   Moyenne : 50.15
+
+-   Ecart-type : 14.58 ans
+
+-   Minimum : 19 ans
+
+-   Maximum : 83 ans
+
+-   Médiane : 48 ans
+
+-   Q1-Q3 : 39 - 62.5 ans
+
+[**Distribution des données**]{.underline} :
+
+Histogramme :
+
+```{r}
+hist(TPretinol_csv$age, main="Histogramme de l'âge", xlab="Âge")
+```
+
+QQplot :
+
+```{r}
+qqnorm(TPretinol_csv$age, main="QQplot de l'âge")
+qqline(TPretinol_csv$age)
+```
+
+La distrubution semble normale. \newpage
+
+#### BMI {#bmi}
+
+-   BMI (Body Mass Index) = IMC (Indice de Masse Corporelle) : variable quantitative continue calculée comme le poids (en kg) divisé par la taille (en m) au carré.
+
+-   Exprimée en kg/m2.
+
+**Description des données** :
+
+```{r}
+summary(TPretinol_csv$bmi)
+sd(TPretinol_csv$bmi)
+```
+
+**Résultats** :
+
+-   Moyenne : 26.16 kg/m2
+
+-   Ecart-type : 6.01 kg/m2
+
+-   Minimum : 16.33 kg/m2
+
+-   Maximum : 50.40 kg/m2
+
+-   Médiane : 24.74 kg/m2
+
+-   Q1-Q3 : 21.80 - 28.85 kg/m2
+
+**Distribution des données** : Histogramme :
+
+```{r}
+hist(TPretinol_csv$bmi, main="Histogramme de la distribution de la variable BMI", xlab="BMI", ylab = "Effectif")
+```
+
+**QQplot** :
+
+```{r}
+qqnorm(TPretinol_csv$bmi, main="QQplot de la variable BMI")
+qqline(TPretinol_csv$bmi)
+```
+
+La répartition de la variable est asymétrique, décalée vers les valeurs hautes (vers la droite) \newpage
+
+#### Alcool {#alcool}
+
+-   Variable quantitative continue exprimée en nombre de verres d'alcool consommés par semaine.
+
+-   Une seule valeur extrême à 203 verres/semaine, qu'on décide d'exclure
+
+**Exclusion de la valeur extrême** :
+
+```{r}
+TPretinol_csv_sans_alcool <- TPretinol_csv[TPretinol_csv$alcool != 203, ]
+#syntaxe : 
+#TPretinol_csv$alcool != 203 : sélectionne les lignes où la consommation d'alcool n'est pas égale à 203
+#TPretinol_csv[ , ] : permet de sélectionner des lignes et des colonnes dans le dataframe
+```
+
+**Description des données** :
+
+```{r}
+summary(TPretinol_csv_sans_alcool$alcool)
+sd(TPretinol_csv_sans_alcool$alcool)
+```
+
+**Résultats** :
+
+-   Moyenne : 2.643 verres/semaine
+
+-   Ecart-type : 4.95 verres/semaine
+
+-   Minimum : 0 verres/semaine
+
+-   Maximum : 35 verres/semaine
+
+-   Médiane : 0.3 verres/semaine
+
+-   Q1-Q3 : 0 - 3.2 verres/semaine
+
+**Distribution des données** :
+
+Histogramme :
+
+```{r}
+hist(TPretinol_csv_sans_alcool$alcool, main="Histogramme de l'alcool", xlab="Alcool (verres/semaine)", ylab = "Effectif")
+```
+
+QQplot :
+
+```{r}
+qqnorm(TPretinol_csv_sans_alcool$alcool, main="QQplot de l'alcool")
+qqline(TPretinol_csv_sans_alcool$alcool)
+```
+
+**Distribution non normale. Valeur extrême.**
+
+```{r}
+boxplot(TPretinol_csv_sans_alcool$alcool, main="Boxplot de la consommation d'alcool", ylab="Alcool (verres/semaine)")
+```
+
+\newpage
+
+#### Cholestérol {#cholestérol}
+
+-   Exprime la consommation quotidienne en choléstérol des patients
+
+-   Variable quantitative continue exprimée en mg/j.
+
+**Description des données** :
+
+```{r}
+summary(TPretinol_csv$cholesterol)
+sd(TPretinol_csv$cholesterol)
+```
+
+**Résultats** :
+
+-   Moyenne : 241.3 mg/dL
+
+-   Ecart-type : 130.62 mg/dL
+
+-   Minimum : 37.7 mg/dL
+
+-   Maximum : 900.7 mg/dL
+
+-   Médiane : 206.2 mg/dL
+
+-   Q1-Q3 : 154.9 - 308.2 mg/dL
+
+**Distribution des données** :
+
+Histogramme :
+
+```{r}
+hist(TPretinol_csv$cholesterol, main="Histogramme de la consommation quotidienne de cholestérol", xlab="Consommation quotidienne de cholestérol (mg/dL)", ylab = "Effectif")
+```
+
+QQplot :
+
+```{r}
+qqnorm(TPretinol_csv$cholesterol, main="QQplot de la consommation quotidienne de cholestérol")
+qqline(TPretinol_csv$cholesterol)
+```
+
+La distribution semble normale
+
+\newpage
+
+#### Consommation quotidienne de rétinol {#consommation-quotidienne-de-rétinol}
+
+-   Variable quantitative continue exprimée en µg/jour.
+
+**Description des données** :
+
+```{r}
+summary(TPretinol_csv$retdiet)
+sd(TPretinol_csv$retdiet)
+```
+
+**Résultats :**
+
+-   Moyenne : 831.0 µg/jour
+
+-   Ecart-type : 589.46 µg/jour
+
+-   Minimum : 30.0 µg/jour
+
+-   Maximum : 6901.0 µg/jour
+
+-   Médiane : 707.0 µg/jour
+
+-   Q1-Q3 : 479.5 - 1026.8 µg/jour
+
+**Distribution des données** :
+
+Histogramme :
+
+```{r}
+hist(TPretinol_csv$retdiet, main="Histogramme de la consommation quotidienne de rétinol", xlab="Consommation quotidienne de rétinol (µg/jour)", ylab = "Effectif")
+```
+
+QQplot :
+
+```{r}
+qqnorm(TPretinol_csv$retdiet, main="QQplot de la consommation quotidienne de rétinol")
+qqline(TPretinol_csv$retdiet)
+```
+
+La distribution est à peu près normale
+
+\newpage
+
+### Variables qualitatives {#variables-qualitatives}
+
+> NB : les variables qualitatives sont recodées en facteurs pour lisibilité
+
+```{r}
+TPretinol_csv$sexe_recode<-factor(TPretinol_csv$sexe, labels = c("Masculin", "Féminin"))
+#syntaxe : 
+#TPretinol_csv$sexe_recode : crée une nouvelle colonne "sexe_recode" dans le dataframe TPretinol_csv
+#TPretinol_csv$sexe : sélectionne la colonne $ au sein du dataframe TPretinol_csv
+#factor() : convertit la variable en facteur (variable qualitative)
+#labels = c("Masculin", "Féminin") : attribue des étiquettes aux niveaux du facteur
+```
+
+```{r}
+TPretinol_csv$tabac_recode<-factor(TPretinol_csv$tabac, labels = c("Jamais", "Autrefois", "Actuellement"))
+TPretinol_csv$vitamine_recode<-factor(TPretinol_csv$vitamine, labels = c("Oui, souvent", "Oui, pas souvent", "Non"))
+```
+
+\newpage
+
+#### Sexe {#sexe}
+
+-   Variable qualitative binaire codée 1/2 : 1=Masculin / 2=Féminin
+
+**Description des données** :
+
+```{r}
+table(TPretinol_csv$sexe_recode)
+prop.table(table(TPretinol_csv$sexe_recode)) * 100
+#légende qui dit que 1=Masculin / 2=Féminin
+
+```
+
+**Résultats :**
+
+| Sexe     | Effectif | Pourcentage (%) |
+|----------|----------|-----------------|
+| Masculin | 42       | 13.33           |
+| Féminin  | 273      | 86.94           |
+
+**Représentation graphique**
+
+Pie chart :
+
+```{r}
+pie(table(TPretinol_csv$sexe_recode), col=c("lightblue","pink"), main="Sexe")
+```
+
+\newpage
+
+#### Tabac {#tabac}
+
+-   Variable qualitative codée 1/2/3 : 1=jamais / 2=autrefois / 3=actuellement
+
+**Description des données** :
+
+```{r}
+table(TPretinol_csv$tabac_recode)
+prop.table(table(TPretinol_csv$tabac_recode)) * 100
+```
+
+**Résultats :**
+
+| Tabac        | Effectif | Pourcentage (%) |
+|--------------|----------|-----------------|
+| Jamais       | 157      | 49.84           |
+| Autrefois    | 115      | 36.51           |
+| Actuellement | 43       | 13.65           |
+
+**Représentation graphique**
+
+Bar plot :
+
+```{r}
+barplot(table(TPretinol_csv$tabac_recode), col = c("#6BD6FF", "#FFC94A", "#FF6B6B"), main="Tabac", ylab="Effectif")
+```
+
+*NB : Le bar plot est plus adapté que le pie chart ici car permet de mieux comparer les effectifs entre les trois catégories de tabac.* \newpage
+
+#### Consommtation de vitamines {#vitamine}
+
+-   Variable qualitative codée 1/2/3 : 1=Oui, souvent / 2=Oui, pas souvent / 3=Non
+
+**Description des données** :
+
+```{r}
+table(TPretinol_csv$vitamine_recode)
+prop.table(table(TPretinol_csv$vitamine_recode)) * 100
+```
+
+**Résultats :**
+
+| Vitamine         | Effectif | Pourcentage (%) |
+|------------------|----------|-----------------|
+| Oui, souvent     | 122      | 38.73           |
+| Oui, pas souvent | 82       | 26.03           |
+| Non              | 110      | 35.23           |
+
+**Représentation graphique**
+
+Bar plot :
+
+```{r}
+barplot(table(TPretinol_csv$vitamine_recode), col = c("#8AFFC1", "#FFD58A", "#FF8A8A"), main="Consommation de vitamines", ylab="Effectif")
+```
+
+\newpage
+
+# Question 2 : Étude entre toutes les paires possibles
+
+Intitulé : « Étudiez les relations existantes entre toutes les paires possibles de variables. »
+
+## Aperçu des relations
+
+-   Types de variables :
+
+    -   Quantitatives continues : rétinol plasmatique, âge, BMI, alcool, cholestérol, rétinol alimentaire
+    -   Qualitatives binaires : sexe
+    -   Qualitatives catégorielles ordonnées : tabac, vitamine
+
+-   Méthode :
+
+    -   Matrices de corrélations pour visualiser les relations entre variables quantitatives et qualitatives.
+
+    -   Les variables binaires (`sexe`) et ordonnées (`tabac`, `vitamine`) ont été incluses dans la matrice de corrélation.
+
+-   Ici, on ne fait pas d’analyse bivariée formelle (tests statistiques) entre chaque paire de variables, mais une analyse exploratoire.
+
+-   Donc on peut inclure des variables binaires et ordonnées dans la matrice de corrélation.
+
+### Matrices de corrélations
+
+-   Principe : on calcule les coefficients de corrélation entre chaque paire de variables quantitatives.
+
+-   Interprétation :
+
+    -   Coefficient de corrélation positif : les deux variables augmentent ensemble.
+
+    -   Coefficient de corrélation négatif : une variable augmente quand l’autre diminue.
+
+    -   Coefficient proche de 0 : pas de relation linéaire entre les deux variables.
+
+-   Méthode dans R :
+
+    -   Utilisation des packages `corrplot` et `psy` pour visualiser les matrices de corrélation.
+
+    -   Sélection des variables d’intérêt dans vecteur (ici : `matrice` contient les variables).
+
+    -   Calcul de la matrice de corrélation avec la fonction `round(cor())`.
+
+    -   Syntaxe :
+
+        -   `cor(nom_de_la_matrice)` : calcule la matrice de corrélation des variables dans `matrice`.
+
+        -   `round(cor(), n)` : arrondit les valeurs de la matrice de corrélation à `n` décimales.
+
+        -   `corrplot(cor(nom_de_la_matrice), method="circle")` : affiche la matrice de corrélation avec des cercles.
+
+```{r}
+#charger les packages nécessaires
+library(corrplot)
+library(psy)
+```
+
+```{r}
+## Matrice de correlation des valeurs 2 à 2 :
+var <- c("retplasma", "age", "sexe", "bmi", "tabac", "vitamine", "cholesterol", "alcool", "retdiet")
+matrice <- TPretinol_csv[, var] #sélection des variables d'intérêt dans le dataframe TPretinol_csv
+str(matrice)
+```
+
+```{r}
+round(cor(matrice), 3)  #affichage de la matrice de corrélation arrondie à 3 décimales
+corrplot(cor(matrice), method="circle") #affichage avec des cercles
+```
+
+```{r}
+corrplot(cor(matrice), method="number") #affichage avec les coefficients de corrélation
+```
+
++----------------------------------------------------------------+-------------------------------------------------------------+
+| Variables corrélées positivement                               | Variables corrélées négativement                            |
++================================================================+=============================================================+
+| -   « Cholestérol » et « Consommation alimentaire de rétinol » | -   « Sexe » et « Age »,                                    |
+|                                                                |                                                             |
+| -   « Age » et « Concentration plasmatique de rétinol »        | -   « Sexe » et « Concentration plasmatique de rétinol » ,  |
+|                                                                |                                                             |
+|                                                                | -   « Sexe » et « Consommation hebdomadaire d'alcool »      |
+|                                                                |                                                             |
+|                                                                | -   « Sexe » et « Consommation alimentaire de cholestérol » |
++----------------------------------------------------------------+-------------------------------------------------------------+
+
+\newpage
+
+### Analyse en composante principale
+
+-   Faisable car analyse sur \< 15 variables
+
+-   Sert à résumer un grand nombre de variables en quelques nouvelles variables (composantes principales) qui gardent l’essentiel de l’information.
+
+-   Principe : représenter les variables dans un plan défini par les deux premières composantes principales.
+
+    -   Chaque composante principale est une combinaison des variables initiales., c'est à dire qu'elle mélange plusieurs variables pour en faire une seule plus simple à interpréter.
+
+    -   Les premières composantes sont les plus importantes : ce sont celles qui résument le plus de différences observées entre les individus (elles expliquent le plus de variance).
+
+    -   L’ACP permet de faire des graphiques en 2 ou 3 dimensions pour mieux voir les liens entre les variables et repérer des groupes d’individus qui se ressemblent.
+
+-   Méthode dans R : utilisation de `mdscpa` et `sphpca` du package `psy`.
+
+    -   Syntaxe :
+
+        -   `mdspca(matrice)` : crée une représentation plane des variables dans le plan défini par les deux premières composantes principales.
+
+        -   `sphpca(matrice)` : crée une représentation sphérique des variables dans le plan défini par les deux premières composantes principales.
+
+#### Représéntation plane
+
+```{r}
+#représentation plane : utilise `mdspca()`
+mdspca(matrice)
+```
+
+**Interprétation** :
+
+-   "*Consommation alimentaire de cholestérol*" et "*Consommation alimentaire de rétinol*" semblent être les deux variables les plus fortement corrélées, positivement (coefficient de corrélation = 0,44).
+
+-   "*Concentration plasmatique de rétinol*" et "*Âge*" semblent également corrélées positivement, moins fortement (R= 0,21), leur interprétation est plus difficile car leurs points sont éloignés du bord du cercle.
+
+-   Ces deux groupes de variables semblent indépendants l'un de l'autre sur l'analyse en composante principale.
+
+-   La variable "*Sexe*" semble
+
+-   corrélée négativement aux variables "*Consommation alimentaire de cholestérol*" et "*Âge*",
+
+-   et moins fortement aux variables "*Consommation hebdomadaire d’alcool*" et "*Concentration plasmatique en rétinol*".
+
+```{r}
+#représentation sphérique : utilise sphpca()
+sphpca(matrice)
+```
+
+**Interprétation** :
+
+-   Association entre "*Consommation alimentaire de cholestérol*" et "*Consommation alimentaire de rétinol*".
+
+-   Association entre "*Concentration plasmatique de rétinol*" et "*Âge*".
+
+-   Indépendance entre ces deux groupes de variables.
+
+**NB : Représentations n'informent pas sur le caractère statistiquement significatif des associations suggérées**
+
+\newpage
+
+## Comparaison des variables
+
+### Tests statistiques
+
++----------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------+------------------------------------------------------------------+----------------+
+| Type de comparaison                                                                    | Test à effectuer                                                                     | Conditions de validité                                           | Fonction R     |
++========================================================================================+======================================================================================+==================================================================+================+
+| Deux variables qualitatives                                                            | **Test du Chi²**                                                                     | Tous les effectifs \> 5 ;                                        | `chisq.test()` |
+|                                                                                        |                                                                                      |                                                                  |                |
+|                                                                                        |                                                                                      | pourcentages non proches de 0 ou 100 %.                          |                |
++----------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------+------------------------------------------------------------------+----------------+
+| Variable quantitative vs variable qualitative                                          | **Test de Student** ( binaire)                                                       | Effectifs \> 30 ;                                                | `t.test()`     |
+|                                                                                        |                                                                                      |                                                                  |                |
+|                                                                                        | **régression linéaire ANOVA** (\> 2 catégories)                                      | normalité d’au moins une variable ou variances comparables.      | `lm()`         |
++----------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------+------------------------------------------------------------------+----------------+
+| Deux variables quantitatives (ex. **Âge** et **concentration plasmatique de rétinol**) | **Test de nullité du coefficient de corrélation** (ou **Spearman** si non-normalité) | Normalité d’au moins une des deux variables ;                    | `cor.test()`   |
+|                                                                                        |                                                                                      |                                                                  |                |
+|                                                                                        |                                                                                      | *ici, Âge et concentration plasmatique suivent une loi normale.* |                |
++----------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------+------------------------------------------------------------------+----------------+
+
+\newpage
+
+### Comparaison : variables quantitatives
+
+Les associations n'impliquant pas "*Alcool*", "*BMI*" et "*Concentration plasmatique de rétinol*" ont été calculées même si elles ne semblent pas suivre une loi normale.
+
+-   Méthode :
+
+    -   test de nullité du coefficient de corrélation de Pearson
+
+    -   test de Spearman si non-normalité
+
+-   Syntaxe :
+
+    -   `cor.test(var1, var2, method="pearson")` : test de nullité du coefficient de corrélation de Pearson entre var1 et var2.
+
+        -   NB : par défaut, la fonction `cor.test()` utilise la méthode de Pearson. (donc en l'absence de méthode précisée, c'est Pearson qui est utilisé)
+
+    -   `cor.test(var1, var2, method="spearman")` : test de nullité du coefficient de corrélation de Spearman entre var1 et var2 =\> à faire si les deux variables ne suivent pas une loi normale.
+
+**Par test de nullité du coefficient de corrélation**
+
+```{r}
+# Tests de nullité pour les variables quantitatives :
+# method = "pearson" par défaut
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$age) 
+```
+
+```{r, results='hide'}
+### Comparaison : variables quantitatives
+# Méthode : test de nullité du coefficient de corrélation
+# Pearson si au moins une variable normale
+# Spearman si les deux variables ne suivent pas une loi normale
+# Variables non normales : alcool, BMI, retplasma
+
+# 1. Corrélations avec retplasma
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$age, method = "pearson")        # retplasma non normal, âge normal → Pearson
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$bmi, method = "spearman")       # deux non normales
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$alcool, method = "spearman")    # deux non normales
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$cholesterol, method = "pearson")# une normale
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$retdiet, method = "spearman")   # deux non normales
+
+# 2. Corrélations avec âge
+cor.test(TPretinol_csv$age, TPretinol_csv$bmi, method = "spearman")             # BMI non normal
+cor.test(TPretinol_csv$age, TPretinol_csv$alcool, method = "spearman")          # alcool non normal
+cor.test(TPretinol_csv$age, TPretinol_csv$cholesterol, method = "pearson")      # normales
+cor.test(TPretinol_csv$age, TPretinol_csv$retdiet, method = "spearman")         # retdiet non normal
+
+# 3. Corrélations entre les autres variables
+cor.test(TPretinol_csv$bmi, TPretinol_csv$alcool, method = "spearman")          # deux non normales
+cor.test(TPretinol_csv$bmi, TPretinol_csv$cholesterol, method = "spearman")     # BMI non normal
+cor.test(TPretinol_csv$bmi, TPretinol_csv$retdiet, method = "spearman")         # deux non normales
+
+cor.test(TPretinol_csv$alcool, TPretinol_csv$cholesterol, method = "spearman")  # alcool non normal
+cor.test(TPretinol_csv$alcool, TPretinol_csv$retdiet, method = "spearman")      # deux non normales
+
+cor.test(TPretinol_csv$cholesterol, TPretinol_csv$retdiet, method = "spearman") # retdiet non normal
+```
+
+**Résultats :**
+
+Les associations entre variables quantitatives ont été étudiées par corrélation de Pearson lorsque la normalité était respectée pour au moins une variable, et par corrélation de Spearman dans les autres cas (variables non normales : *alcool*, *BMI*, *rétinol plasmatique*).
+
+Les corrélations significatives (p-value \< 0,05) sont les suivantes :
+
+-   **Entre le rétinol plasmatique et l’âge** : *r = 0,21*, p \< 0,001 (corrélation positive faible).
+
+-   **Entre le rétinol plasmatique et la consommation d’alcool** : *rho = 0,14*, p = 0,015 (corrélation positive faible).
+
+-   **Entre l’âge et le cholestérol** : *r = -0,11*, p = 0,044 (corrélation négative faible).
+
+-   **Entre le BMI et la consommation d’alcool** : *rho = -0,21*, p \< 0,001 (corrélation négative faible).
+
+-   **Entre le BMI et le cholestérol** : *rho = 0,12*, p = 0,027 (corrélation positive faible).
+
+-   **Entre le cholestérol et le rétinol alimentaire** : *rho = 0,45*, p \< 0,001 (corrélation positive modérée).
+
+Les autres associations testées ne sont pas statistiquement significatives.
+
+Ces résultats suggèrent que la concentration plasmatique de rétinol est modestement corrélée à l’âge et à la consommation d’alcool, tandis que le cholestérol alimentaire présente une corrélation notable avec le cholestérol sanguin.
+
+\newpage
+
+### Comparaison : variables qualitatives
+
+**Par test de Chi²**
+
+-   Principe : on compare les distributions de deux variables qualitatives pour voir si elles sont indépendantes ou associées.
+
+-   Conditions de validité :
+
+    -   Tous les effectifs doivent être supérieurs à 5.
+
+    -   Les pourcentages ne doivent pas être trop proches de 0 ou 100 %.
+
+-   Méthode dans R : utilisation de la fonction `chisq.test()`.
+
+    -   Syntaxe : `chisq.test(var1, var2)` : effectue le test du Chi² entre var1 et var2.
+
+-   Interprétation : si la p-value est inférieure à 0,05, on rejette l’hypothèse d’indépendance entre les deux variables, donc elles sont associées.
+
+```{r}
+# Tests du Chi² pour les variables qualitatives :
+#1. SEXE vs TABAC
+chisq.test(TPretinol_csv$sexe_recode, TPretinol_csv$tabac_recode)
+
+#2. SEXE vs VITAMINE
+chisq.test(TPretinol_csv$sexe_recode, TPretinol_csv$vitamine_recode)
+
+#3. TABAC vs VITAMINE
+chisq.test(TPretinol_csv$tabac_recode, TPretinol_csv$vitamine_recode)
+```
+
+**Résultats :**
+
+Associations statistiquement significatives (p-value \< 0,05) :
+
+-   Entre "*Sexe*" et "*Tabac*" (p-value = 0,0282)
+
+-   Entre "*Sexe*" et "*Consommation de vitamines*" (p-value = 0,003944)
+
+Pas d'association statistiquement significative entre "*Tabac*" et "*Consommation de vitamines*" (p-value = 0,06491) \newpage
+
+### Comparaison : variable quantitative vs variable qualitative
+
+**Par test de Student (binaire) ou régression linéaire ANOVA (\> 2 catégories)**
+
+-   Principe : on compare les moyennes d’une variable quantitative entre les différentes catégories d’une variable qualitative.
+
+-   Conditions de validité :
+
+    -   Test de Student (binaire) : effectifs \> 30 ; normalité d’au moins une variable ou variances comparables.
+
+    -   Régression linéaire ANOVA (\> 2 catégories) : normalité d’au moins une variable ou variances comparables.
+
+-   Méthode dans R :
+
+    -   Test de Student : utilisation de la fonction `t.test()`.
+
+        -   Syntaxe : `t.test(var_quantitative ~ var_qualitative, var.equal = T)` : effectue le test de Student entre la variable quantitative et la variable qualitative binaire.
+
+        -   `var.equal = T` : suppose que les variances des deux groupes sont égales.
+
+    -   Régression linéaire ANOVA : utilisation de la fonction `lm()`.
+
+        -   Syntaxe : `summary(lm(var_quantitative ~ var_qualitative))` : effectue une régression linéaire entre la variable quantitative et la variable qualitative ordonnée (\> 2 catégories).
+
+-   Interprétation : si la p-value est inférieure à 0,05, on rejette l’hypothèse d’égalité des moyennes entre les groupes, donc il y a une association entre les deux variables.
+
+#### Comparaison à la variable binaire "Sexe" : par Test de Student
+
+```{r}
+# Test de Student pour les interactions avec la variable Sexe :
+t.test(TPretinol_csv$retplasma~TPretinol_csv$sexe, var.equal = T)
+#var.equal = T : suppose que les variances des deux groupes sont égales
+```
+
+```{r, results='hide'}
+#de la même manière pour les autres variables quantitatives :
+#la sortie code n'est volontairement pas exécuté pour éviter une surcharge d'affichage
+t.test(TPretinol_csv$age~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$bmi~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$alcool~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$cholesterol~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$retdiet~TPretinol_csv$sexe, var.equal = T)
+```
+
+**Résultats :**
+
+-   Association significative entre "*Sexe*" et :
+
+    -   "*Âge*" (p-value \< 0,001)
+
+    -   "*Concentration plasmatique de rétinol*" (p-value \< 0,001)
+
+    -   "*Consommation hebdomadaire d’alcool*" (p-value \< 0,001)
+
+    -   "*Consommation quotidienne de cholestérol*" (p-value \< 0,001)
+
+-   Pas d'association significative entre "*Sexe*" et :
+
+    -   "*Indice de masse corporelle*"
+
+    -   "*Consommation quotidienne de rétinol*" \newpage
+
+#### Comparaison aux variables catégorielles ordonnées "Tabac" et "Vitamine" : par régression linéaire ANOVA
+
+##### Tabac :
+
+*Code*
+
+```{r}
+# ANOVA pour les interactions avec la variable Tabac :
+summary(lm(TPretinol_csv$retplasma~TPretinol_csv$tabac))
+```
+
+```{r, results='hide'}
+#de la même manière pour les autres variables (sortie non exécutée)
+summary(lm(TPretinol_csv$age~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$bmi~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$alcool~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$cholesterol~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$retdiet~TPretinol_csv$tabac))
+```
+
+**Résultats :**
+
+-   Association significative entre "*Tabac*" et :
+
+    -   "*Concentration plasmatique de rétinol*" (p-value = 0,023)
+
+    -   "*Âge*" (p-value = 0,023)
+
+    -   "*Consommation hebdomadaire d’alcool*" (p-value = 0,015)
+
+-   Pas d'association significative entre "*Tabac*" et :
+
+    -   "*Indice de masse corporelle*"
+
+    -   "*Consommation quotidienne de cholestérol*"
+
+    -   "*Consommation quotidienne de rétinol*" \newpage
+
+##### Vitamines
+
+*Code*
+
+```{r, results='hide'}
+# ANOVA pour les interactions avec la variable Vitamines :
+summary(lm(TPretinol_csv$retplasma~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$age~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$bmi~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$alcool~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$cholesterol~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$retdiet~TPretinol_csv$vitamine))
+```
+
+**Résultats :**
+
+-   Association significative entre "*Vitamines*" et :
+
+    -   "*Âge*" (p-value = 0,012)
+
+-   Pas d'association significative entre "*Vitamines*" et :
+
+    -   "*Concentration plasmatique de rétinol*"
+
+    -   "*Indice de masse corporelle*"
+
+    -   "*Consommation hebdomadaire d’alcool*"
+
+    -   "*Consommation quotidienne de cholestérol*"
+
+    -   "*Consommation quotidienne de rétinol*"
+
+\newpage
+
+# Question 3 : Interactions
+
+-   Variable à expliquer : "*Concentration plasmatique de rétinol*"
+
+-   Les autres sont explicatives
+
+NB : choix du test de comparaison entre modèles dépend du type de variable dépendante
+
+-   Variable quantitative :
+
+    -   Test de Fisher (test F / ANOVA) : repose sur la comparaison des variances expliquées entre modèles.
+
+    -   Code : `drop1(lm(var_expliquée ~ var_explicative1 + var_explicative2 + ... , data=nom_dataframe), .~., test="F")`
+
+-   Variable binaire :
+
+    -   test du Chi² : repose sur la comparaison des log-vraisemblances entre modèles.
+
+    -   Code : `drop1(glm(var_expliquée ~ var_explicative1 + var_explicative2 + ... , data=nom_dataframe, family=binomial), .~., test="Chisq")`
+
+    -   `family=binomial` : spécifie que le modèle est une régression logistique pour une variable dépendante binaire.
+
+## Régression linéaire multiple
+
+*Objectif* : identifier les variables explicatives ayant un effet significatif sur la variable expliquée, indépendammant des autres variables, et quantifier cette influence.
+
+-   Principe : on ajuste un modèle de régression linéaire multiple incluant toutes les variables explicatives.
+
+    -   On évalue la significativité de chaque variable explicative en ajustant sur les autres.
+
+-   Méthode : fonction `drop1()` pour obtenir les p-values ajustées pour chaque variable explicative dans le modèle.
+
+-   Interprétation : coefficients estimés pour quantifier l'effet de chaque variable explicative sur la variable expliquée.
+
+```{r}
+modele <- lm(retplasma ~ age + sexe_recode + bmi + tabac_recode + vitamine_recode + cholesterol + alcool + retdiet, data = TPretinol_csv)
+summary(modele)
+drop1(modele, .~., test="F")
+#drop1 est nécessaire ici car la fonction summary() ne fournit pas les p-values ajustées pour chaque variable explicative dans le modèle de régression linéaire multiple.
+#test="F" indique que l'on souhaite effectuer un test F pour évaluer la signification de chaque variable explicative dans le modèle.
+#le test F correspond à un test de F d'Anova (= test de Fisher)
+```
+
+**Résultats :**
+
+-   Après ajustement sur toutes les autres variables explicatives, 2 variables restent significativement associées à la concentration plasmatique de rétinol :
+
+    -   "*Âge*" (p-value = 0,007)
+
+    -   "*Sexe*" (p-value = 0,007)
+
+-   Les autres variables explicatives ne sont pas significativement associées à la concentration plasmatique de rétinol après ajustement.
+
+**Histogramme des résidus** :
+
+*Résidus : erreurs entre valeurs observées et valeurs prédites par le modèle.*
+
+-   Principe : vérifier que les résidus du modèle suivent une distribution normale, condition importante pour la validité des tests statistiques dans la régression linéaire.
+
+-   Méthode dans R : utilisation de la fonction `hist()` pour tracer l'histogramme des résidus du modèle.
+
+```{r}
+hist(resid(modele), main="Histogramme des résidus du modèle de régression linéaire multiple", xlab="Résidus", ylab = "Effectif")
+```
+
+L'histogramme des résidus a une distribution approximativement symétrique et en cloche, suggérant que l'hypothèse de normalité des résidus est raisonnable. \newpage
+
+## Interactions entre les variables explicatives
+
+**Méthode** :
+
+-   plusieurs modèles de régressions linéaires multiples
+
+-   chacun incluant une interaction entre deux variables (*ex* : `Âge` et `Consommation d'alcool`
+
+-   Code : `drop1(lm(retplasma~var_interaction1*var_interaction2+var_explicative1+var_explicative2+var_explicative3, data=TPretinol_csv), .~., test = "F")`
+
+    -   Les variables impliquées dans l'interaction sont sont séparées par le symbole `*`
+
+    -   Les variables non impliquées dans l'interaction sont ajoutées comme variables explicatives, séparées par le symbole `+`
+
+**Exemple pour l'âge** :
+
+```{r}
+# Age
+#interaction âge + tabac_recode avec autres variables
+drop1(lm(retplasma~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+```
+
+```{r, results='hide'}
+#autres interactions
+drop1(lm(retplasma~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+```
+
+**Code complet** :
+
+```{r, results='hide'}
+# Age
+drop1(lm(retplasma~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+# sexe_recode
+drop1(lm(retplasma~age*sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*bmi+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*vitamine_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*alcool+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*cholesterol+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*retdiet+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+# tabac_recode
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*vitamine_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*alcool+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*cholesterol+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*retdiet+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+#BMI
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*alcool+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*cholesterol+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*retdiet+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+#vitamine_recodes
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode*alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode*cholesterol+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode*retdiet+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+#Alcool
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*retdiet+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+# Cholesterol
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol*retdiet, data=TPretinol_csv), .~., test = "F")
+#etc
+```
+
+**Résultats** :
+
+On constate que la consommation d'alcool interagit significativement avec plusieurs autres variables explicatives dans le modèle de régression linéaire multiple. : "*Âge*", "*Sexe*", "*IMC*", "*Consommation de vitamines*", "*Consommation de cholestérol*", et "*Consommation de rétinol*".
+
+Son interprétation dans le modèle doit donc prendre en compte ces interactions pour une compréhension complète de son effet sur la concentration plasmatique de rétinol.
+
+\newpage
+
+# Question 4 : Régression logistique
+
+-   Principe : modéliser la probabilité qu'un événement se produise en fonction de variables explicatives.
+
+-   Objectif : identifier les variables explicatives associées à la probabilité d'avoir une concentration plasmatique de rétinol indépendamment les unes des autres.
+
+-   Conditions de validité :
+
+    -   Variable dépendante binaire.
+
+    -   Taille d'échantillon suffisante : n \> 10 \* nombre de variables explicatives.
+
+-   **Ici : la concentration en rétinol ()variable `retplasma` n'est pas binaire :mais quantitative : il faut donc passer par une étape préalable de recodage en variable binaire.**
+
+*Étape préliminaire* : recodage de la concentration en rétinol en variable binaire, au seuil de sa médiane dans l'échantillon
+
+```{r}
+TPretinol_csv$retplasma_binaire <- ifelse(TPretinol_csv$retplasma >= median(TPretinol_csv$retplasma), 1, 0)
+#syntaxe :
+#TPretinol_csv$retplasma_binaire : crée une nouvelle colonne "retplasma_binaire" dans le dataframe TPretinol_csv
+#ifelse() : fonction qui permet de créer une variable binaire en fonction d'une condition
+#TPretinol_csv$retplasma >= median(TPretinol_csv$retplasma) : condition pour attribuer la valeur 1 (si la concentration plasmatique de rétinol est supérieure ou égale à la médiane)
+#1 : valeur attribuée si la condition est vraie
+#0 : valeur attribuée si la condition est fausse
+
+#affichage des effectifs : 
+table(TPretinol_csv$retplasma_binaire)
+```
+
+## Modèle de régression logistique
+
+-   Variable à expliquer : "*Concentration plasmatique de rétinol*", recodée en variable binaire
+
+-   Les autres sont explicatives
+
+*Objectif* : identifier quelles sont les variables significativement associées à la concentration plasmatique seuil de rétinol, au risque de 5%, indépendamment les unes des autres.
+
+-   Méthode dans R :
+
+    -   fonction `glm()` pour ajuster un modèle de régression logistique.
+
+        -   Syntaxe : `glm(var_expliquée ~ var_explicative1 + var_explicative2 + ... , data=nom_dataframe, family=binomial)` : ajuste un modèle de régression logistique pour une variable dépendante binaire.
+
+        -   `family=binomial` : spécifie que le modèle est une régression logistique pour une variable dépendante binaire.
+
+        -   les autres `family` sont : `gaussian` (régression linéaire), `poisson` (régression de Poisson), etc.
+
+    -   fonction `drop1()` pour obtenir les p-values ajustées pour chaque variable explicative dans le modèle.
+
+-   Interprétation. :
+
+    -   Coefficients estimés pour quantifier l'effet de chaque variable explicative sur la probabilité d'avoir une concentration plasmatique de rétinol ≥ à la médiane.
+
+    -   Odds Ratios (OR) : exponentielle des coefficients estimés, interprétés comme l'augmentation (OR \> 1) ou la diminution (OR \< 1) des chances d'avoir une concentration plasmatique de rétinol ≥ à la médiane associée à une unité d'augmentation de la variable explicative.
+
+    -   P-values ajustées pour évaluer la significativité de chaque variable explicative dans le modèle de régression logistique multiple.
+
+```{r}
+# Ajustement du modèle de régression logistique multiple
+modele_logistique <- glm(retplasma_binaire ~ age + sexe_recode + bmi + tabac_recode + vitamine_recode + cholesterol + alcool + retdiet, data = TPretinol_csv, family = binomial)
+#afficher le modèle : 
+summary(modele_logistique)
+#évaluer la significativité de chaque variable explicative dans le modèle
+drop1(modele_logistique, .~., test="Chisq")
+#calcul des Odds Ratios (OR)
+exp(coef(modele_logistique))
+```
+
+**Résultats** :
+
+-   Après ajustement, seule la variable "*Âge*" reste significativement associée à la concentration plasmatique de rétinol (p-value \< 0,001).
+
+Après ajustement, seule la variable "*Âge*" reste significativement associée à la concentration plasmatique de rétinol (p-value \< 0,001).
+
+-   OR = 1,029, indiquant qu'à chaque année prise, un patient a 2,9% de chances de plus d'avoir une concentration plasmatique de rétinol ≥ à la médiane (566 ng/mL).
+
+-   En recondant les autres variables catégorielles en variables binaires, les conditions de validité du modèle sont respectées (n \> 10 \* nombre de variables explicatives) car chaque groupe de la variable dépendante "*Concentration plasmatique en rétinol*" contient plus de 150 patients. \newpage
+
+## Interactions entre les variables explicatives
+
+**Méthode** :
+
+-   plusieurs modèles de régressions logistiques
+
+-   chacun incluant une interaction entre deux variables (*ex* : `Âge` et `Consommation d'alcool`)
+
+-   Code : `drop1(glm(retplasma_binaire~var_interaction1*var_interaction2+var_explicative1+var_explicative2+var_explicative3, data=TPretinol_csv, family=binomial), .~., test = "Chisq")`
+
+    -   Les variables impliquées dans l'interaction sont sont séparées par le symbole `*`
+
+    -   Les variables non impliquées dans l'interaction sont ajoutées comme variables explicatives, séparées par le symbole `+`
+
+**Exemple pour l'âge** :
+
+```{r}
+# Age
+#interaction âge + tabac_recode avec autres variables
+drop1(glm(retplasma_binaire~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+```
+
+```{r, results='hide'}
+#autres interactions
+drop1(glm(retplasma_binaire~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+```
+
+**Code complet** :
+
+```{r, results='hide'}
+# Age
+drop1(glm(retplasma_binaire~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+# sexe_recode
+drop1(glm(retplasma_binaire~age*sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*bmi+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*vitamine_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*alcool+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*cholesterol+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*retdiet+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")  
+
+# tabac_recode
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*vitamine_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*alcool+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*cholesterol+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*retdiet+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+#BMI
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*alcool+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*cholesterol+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*retdiet+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+#vitamine_recodes
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode*alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode*cholesterol+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode*retdiet+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+#alcool
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*retdiet+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+# Cholesterol
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol*retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+#etc
+```
+
+**Résultats** :
+
+Associations statistiquement significatives (p-value \< 0,05) entre les variables explicatives :
+
+-   Entre "*Âge*" et "*Consommation d’alcool*" (p-value = 0,0007)
+
+-   Entre "*Tabac*" et :"*Consommation d’alcool*" (p-value = 0,0188)
+
+-   Entre "*Consommation de vitamines*" et :"*Consommation d’alcool*" (p-value = 0,0012)
+
+-   Entre "*Consommation d’alcool*" et :"*Consommation de cholestérol*" (p-value = 0,0073)
+
+Les variables principales présentant un effet significatif sont :\
+"*Âge*" (p-value \< 0,001), "*Consommation d’alcool*" (p-value = 0,0007), "*Consommation de vitamines*" (p-value = 0,036), et "*Sexe*" (p-value = 0,043).
+
+On constate que la **consommation d’alcool** est la variable la plus fréquemment impliquée dans des interactions significatives, notamment avec "*Âge*", "*Tabac*", "*Vitamines*" et "*Cholestérol*".\
+Cela suggère que son effet sur la **probabilité d’avoir une concentration plasmatique élevée de rétinol** varie selon le profil des autres variables explicatives.
+
+L’interprétation de l’effet de la consommation d’alcool dans le modèle doit donc tenir compte de ces interactions pour une compréhension complète des déterminants de la concentration en rétinol.
+
+\newpage
+
+# Script R
+
+```{=latex}
+\begin{codebox}
+\begin{CodeBoxContent}
+
+# Chargement des données
+
+TPretinol_csv <- read.csv2("TPretinol.csv", stringsAsFactors = FALSE)
+
+# Introduction {#introduction}
+
+
+# Question 1 : Description des données
+
+str(TPretinol_csv)
+#fonction summary() : résumé statistique des variables du jeu de données
+summary(TPretinol_csv)
+summary(TPretinol_csv$retplasma)
+sd(TPretinol_csv$retplasma) # calcule l'ecart-type
+hist(
+  TPretinol_csv$retplasma, #nom de la variable
+  main="Histogramme : concentration du rétinol plasmatique", #titre du graphique
+  xlab="Rétinol plasmatique (ng/mL)", #label de l'axe des X
+  ylab = "Effectif" #label de l'axe des Y
+  )
+qqnorm(TPretinol_csv$retplasma, main="QQplot de la concentration du rétinol plasmatique")
+qqline(TPretinol_csv$retplasma)
+summary(TPretinol_csv$age)
+sd(TPretinol_csv$age)
+hist(TPretinol_csv$age, main="Histogramme de l'âge", xlab="Âge")
+qqnorm(TPretinol_csv$age, main="QQplot de l'âge")
+qqline(TPretinol_csv$age)
+summary(TPretinol_csv$bmi)
+sd(TPretinol_csv$bmi)
+hist(TPretinol_csv$bmi, main="Histogramme de la distribution de la variable BMI", xlab="BMI", ylab = "Effectif")
+qqnorm(TPretinol_csv$bmi, main="QQplot de la variable BMI")
+qqline(TPretinol_csv$bmi)
+TPretinol_csv_sans_alcool <- TPretinol_csv[TPretinol_csv$alcool != 203, ]
+#syntaxe : 
+#TPretinol_csv$alcool != 203 : sélectionne les lignes où la consommation d'alcool n'est pas égale à 203
+#TPretinol_csv[ , ] : permet de sélectionner des lignes et des colonnes dans le dataframe
+summary(TPretinol_csv_sans_alcool$alcool)
+sd(TPretinol_csv_sans_alcool$alcool)
+hist(TPretinol_csv_sans_alcool$alcool, main="Histogramme de l'alcool", xlab="Alcool (verres/semaine)", ylab = "Effectif")
+qqnorm(TPretinol_csv_sans_alcool$alcool, main="QQplot de l'alcool")
+qqline(TPretinol_csv_sans_alcool$alcool)
+boxplot(TPretinol_csv_sans_alcool$alcool, main="Boxplot de la consommation d'alcool", ylab="Alcool (verres/semaine)")
+summary(TPretinol_csv$cholesterol)
+sd(TPretinol_csv$cholesterol)
+hist(TPretinol_csv$cholesterol, main="Histogramme de la consommation quotidienne de cholestérol", xlab="Consommation quotidienne de cholestérol (mg/dL)", ylab = "Effectif")
+qqnorm(TPretinol_csv$cholesterol, main="QQplot de la consommation quotidienne de cholestérol")
+qqline(TPretinol_csv$cholesterol)
+summary(TPretinol_csv$retdiet)
+sd(TPretinol_csv$retdiet)
+hist(TPretinol_csv$retdiet, main="Histogramme de la consommation quotidienne de rétinol", xlab="Consommation quotidienne de rétinol (µg/jour)", ylab = "Effectif")
+qqnorm(TPretinol_csv$retdiet, main="QQplot de la consommation quotidienne de rétinol")
+qqline(TPretinol_csv$retdiet)
+TPretinol_csv$sexe_recode<-factor(TPretinol_csv$sexe, labels = c("Masculin", "Féminin"))
+#syntaxe : 
+#TPretinol_csv$sexe_recode : crée une nouvelle colonne "sexe_recode" dans le dataframe TPretinol_csv
+#TPretinol_csv$sexe : sélectionne la colonne $ au sein du dataframe TPretinol_csv
+#factor() : convertit la variable en facteur (variable qualitative)
+#labels = c("Masculin", "Féminin") : attribue des étiquettes aux niveaux du facteur
+TPretinol_csv$tabac_recode<-factor(TPretinol_csv$tabac, labels = c("Jamais", "Autrefois", "Actuellement"))
+TPretinol_csv$vitamine_recode<-factor(TPretinol_csv$vitamine, labels = c("Oui, souvent", "Oui, pas souvent", "Non"))
+table(TPretinol_csv$sexe_recode)
+prop.table(table(TPretinol_csv$sexe_recode)) * 100
+#légende qui dit que 1=Masculin / 2=Féminin
+
+pie(table(TPretinol_csv$sexe_recode), col=c("lightblue","pink"), main="Sexe")
+table(TPretinol_csv$tabac_recode)
+prop.table(table(TPretinol_csv$tabac_recode)) * 100
+barplot(table(TPretinol_csv$tabac_recode), col = c("#6BD6FF", "#FFC94A", "#FF6B6B"), main="Tabac", ylab="Effectif")
+table(TPretinol_csv$vitamine_recode)
+prop.table(table(TPretinol_csv$vitamine_recode)) * 100
+barplot(table(TPretinol_csv$vitamine_recode), col = c("#8AFFC1", "#FFD58A", "#FF8A8A"), main="Consommation de vitamines", ylab="Effectif")
+
+# Question 2 : Étude entre toutes les paires possibles
+
+library(corrplot)
+library(psy)
+## Matrice de correlation des valeurs 2 à 2 :
+var <- c("retplasma", "age", "sexe", "bmi", "tabac", "vitamine", "cholesterol", "alcool", "retdiet")
+matrice <- TPretinol_csv[, var] #sélection des variables d'intérêt dans le dataframe TPretinol_csv
+str(matrice)
+round(cor(matrice), 3)  #affichage de la matrice de corrélation arrondie à 3 décimales
+corrplot(cor(matrice), method="circle")
+corrplot(cor(matrice), method="number") #affichage avec les coefficients de corrélation
+mdspca(matrice)
+sphpca(matrice)
+
+# Tests de nullité pour les variables quantitatives :
+
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$age)
+#de la même manière pour les autres variables quantitatives :
+#la sortie code n'est volontairement pas exécuté pour éviter une surcharge d'affichage
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$bmi)
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$alcool)
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$cholesterol)
+cor.test(TPretinol_csv$retplasma, TPretinol_csv$retdiet)
+
+cor.test(TPretinol_csv$age, TPretinol_csv$bmi)
+cor.test(TPretinol_csv$age, TPretinol_csv$alcool)
+cor.test(TPretinol_csv$age, TPretinol_csv$cholesterol)
+cor.test(TPretinol_csv$age, TPretinol_csv$retdiet)
+
+cor.test(TPretinol_csv$bmi, TPretinol_csv$alcool)
+cor.test(TPretinol_csv$bmi, TPretinol_csv$cholesterol)
+cor.test(TPretinol_csv$bmi, TPretinol_csv$retdiet)
+
+cor.test(TPretinol_csv$alcool, TPretinol_csv$cholesterol)
+cor.test(TPretinol_csv$alcool, TPretinol_csv$retdiet)
+
+cor.test(TPretinol_csv$cholesterol, TPretinol_csv$retdiet)
+
+# Tests du Chi² pour les variables qualitatives :
+
+#1. SEXE vs TABAC
+chisq.test(TPretinol_csv$sexe_recode, TPretinol_csv$tabac_recode)
+
+#2. SEXE vs VITAMINE
+chisq.test(TPretinol_csv$sexe_recode, TPretinol_csv$vitamine_recode)
+
+#3. TABAC vs VITAMINE
+chisq.test(TPretinol_csv$tabac_recode, TPretinol_csv$vitamine_recode)
+t.test(TPretinol_csv$retplasma~TPretinol_csv$sexe, var.equal = T)
+#var.equal = T : suppose que les variances des deux groupes sont égales
+#de la même manière pour les autres variables quantitatives :
+#la sortie code n'est volontairement pas exécuté pour éviter une surcharge d'affichage
+t.test(TPretinol_csv$age~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$bmi~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$alcool~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$cholesterol~TPretinol_csv$sexe, var.equal = T)
+t.test(TPretinol_csv$retdiet~TPretinol_csv$sexe, var.equal = T)
+
+# ANOVA pour les interactions avec la variable Tabac :
+
+summary(lm(TPretinol_csv$retplasma~TPretinol_csv$tabac))
+#de la même manière pour les autres variables (sortie non exécutée)
+summary(lm(TPretinol_csv$age~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$bmi~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$alcool~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$cholesterol~TPretinol_csv$tabac))
+summary(lm(TPretinol_csv$retdiet~TPretinol_csv$tabac))
+
+# ANOVA pour les interactions avec la variable Vitamines :
+
+summary(lm(TPretinol_csv$retplasma~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$age~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$bmi~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$alcool~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$cholesterol~TPretinol_csv$vitamine))
+summary(lm(TPretinol_csv$retdiet~TPretinol_csv$vitamine))
+
+# Question 3 : Interactions
+
+modele <- lm(retplasma ~ age + sexe_recode + bmi + tabac_recode + vitamine_recode + cholesterol + alcool + retdiet, data = TPretinol_csv)
+summary(modele)
+drop1(modele, .~., test="F")
+#drop1 est nécessaire ici car la fonction summary() ne fournit pas les p-values ajustées pour chaque variable explicative dans le modèle de régression linéaire multiple.
+#test="F" indique que l'on souhaite effectuer un test F pour évaluer la signification de chaque variable explicative dans le modèle.
+#le test F correspond à un test de F d'Anova (= test de Fisher)
+hist(resid(modele), main="Histogramme des résidus du modèle de régression linéaire multiple", xlab="Résidus", ylab = "Effectif")
+
+# Age
+
+#interaction âge + tabac_recode avec autres variables
+drop1(lm(retplasma~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+#autres interactions
+drop1(lm(retplasma~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+# Age
+
+drop1(lm(retplasma~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+
+# sexe_recode
+
+drop1(lm(retplasma~age*sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*bmi+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*vitamine_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*alcool+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*cholesterol+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode*retdiet+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+
+# tabac_recode
+
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*vitamine_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*alcool+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*cholesterol+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode*retdiet+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+#BMI
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*alcool+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*cholesterol+vitamine_recode+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi*retdiet+vitamine_recode+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+#vitamine_recodes
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode*alcool+cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode*cholesterol+alcool+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode*retdiet+alcool+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+#Alcool
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*cholesterol+retdiet, data=TPretinol_csv), .~., test = "F")
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*retdiet+cholesterol, data=TPretinol_csv), .~., test = "F")
+
+
+# Cholesterol
+
+drop1(lm(retplasma~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol*retdiet, data=TPretinol_csv), .~., test = "F")
+#etc
+
+# Question 4 : Régression logistique
+
+TPretinol_csv$retplasma_binaire <- ifelse(TPretinol_csv$retplasma >= median(TPretinol_csv$retplasma), 1, 0)
+#syntaxe :
+#TPretinol_csv$retplasma_binaire : crée une nouvelle colonne "retplasma_binaire" dans le dataframe TPretinol_csv
+#ifelse() : fonction qui permet de créer une variable binaire en fonction d'une condition
+#TPretinol_csv$retplasma >= median(TPretinol_csv$retplasma) : condition pour attribuer la valeur 1 (si la concentration plasmatique de rétinol est supérieure ou égale à la médiane)
+#1 : valeur attribuée si la condition est vraie
+#0 : valeur attribuée si la condition est fausse
+
+#affichage des effectifs : 
+table(TPretinol_csv$retplasma_binaire)
+modele_logistique <- glm(retplasma_binaire ~ age + sexe_recode + bmi + tabac_recode + vitamine_recode + cholesterol + alcool + retdiet, data = TPretinol_csv, family = binomial)
+summary(modele_logistique)
+drop1(modele_logistique, .~., test="Chisq")
+exp(coef(modele_logistique))
+
+# Age
+
+#interaction âge + tabac_recode avec autres variables
+drop1(glm(retplasma_binaire~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+#autres interactions
+drop1(glm(retplasma_binaire~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+# Age
+
+drop1(glm(retplasma_binaire~age*tabac_recode+sexe_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*bmi+sexe_recode+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*vitamine_recode+sexe_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*alcool+sexe_recode+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*cholesterol+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age*retdiet+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+
+# sexe_recode
+
+drop1(glm(retplasma_binaire~age*sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*tabac_recode+bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*bmi+tabac_recode+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*vitamine_recode+tabac_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*alcool+tabac_recode+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*cholesterol+tabac_recode+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode*retdiet+tabac_recode+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")  
+
+
+# tabac_recode
+
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*bmi+vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*vitamine_recode+bmi+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*alcool+bmi+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*cholesterol+bmi+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode*retdiet+bmi+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+#BMI
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*vitamine_recode+alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*alcool+vitamine_recode+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*cholesterol+vitamine_recode+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi*retdiet+vitamine_recode+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+#vitamine_recodes
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode*alcool+cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode*cholesterol+alcool+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode*retdiet+alcool+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+#alcool
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*cholesterol+retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool*retdiet+cholesterol, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+
+
+# Cholesterol
+
+drop1(glm(retplasma_binaire~age+sexe_recode+tabac_recode+bmi+vitamine_recode+alcool+cholesterol*retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+#etc
+
+drop1(glm(retplasma_binaire~age+sexe+tabac+bmi+vitamine+alcool+cholesterol*retdiet, data=TPretinol_csv, family=binomial), .~., test = "Chisq")
+\end{CodeBoxContent}
+\end{codebox}
+\newpage
+```

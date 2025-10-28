@@ -1,0 +1,32 @@
+library(leaflet)
+library(dplyr)
+
+df <- df %>%
+  mutate(
+    color_cjp = ifelse(CJP == 1, "green", "red"),
+    shape_urg = ifelse(cabinet_adapte == 1, "circle", "square"),
+    lat_jit = jitter(lat, factor = 0.0005),
+    lon_jit = jitter(lon, factor = 0.0005)
+  )
+
+leaflet(df) %>%
+  addTiles() %>%
+  addAwesomeMarkers(
+    lng = ~lon_jit,
+    lat = ~lat_jit,
+    icon = ~awesomeIcons(
+      icon = ifelse(shape_urg == "circle", "circle", "square"),
+      iconColor = "white",
+      markerColor = ifelse(CJP == 1, "green", "red")
+    ),
+    popup = ~paste0(
+      "<b>CJP :</b> ", CJP, "<br>",
+      "<b>Cabinet adapté :</b> ", cabinet_adapte
+    )
+  ) %>%
+  addLegend(
+    "bottomright",
+    colors = c("red", "green"),
+    labels = c("CJP = 0", "CJP = 1"),
+    title = "Statut CJP"
+  )

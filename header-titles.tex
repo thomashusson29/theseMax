@@ -1,0 +1,26 @@
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+\definecolor{mainblue}{HTML}{1F4E79}
+\definecolor{subblue}{HTML}{3C78D8}
+\definecolor{lightgray}{gray}{0.30}
+
+% Niveau 1 (#) : grand + trait sous le titre (pas de #1)
+\titleformat{\section}{\normalfont\bfseries\color{mainblue}\huge}{\thesection}{1em}{}[\vspace{0.3em}\titlerule]
+\titlespacing*{\section}{0pt}{1.8em plus .5em minus .5em}{1em}
+
+% Niveau 2 (##) : grand + trait (pas de #1)
+\titleformat{\subsection}{\normalfont\bfseries\color{subblue}\Large}{\thesubsection}{1em}{}[\vspace{0.2em}\titlerule]
+\titlespacing*{\subsection}{0pt}{1.4em plus .3em minus .3em}{0.8em}
+
+% Niveau 3 (###)
+\titleformat{\subsubsection}{\normalfont\bfseries\color{black}\large}{\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{1em plus .3em minus .3em}{0.6em}
+
+% Niveau 4 (####)
+\titleformat{\paragraph}{\normalfont\bfseries\normalsize\color{lightgray}}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{0.8em plus .2em minus .2em}{0.4em}
+
+% Niveau 5 (#####)
+\titleformat{\subparagraph}{\normalfont\bfseries\small\color{gray!70!black}}{\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{0pt}{0.5em plus .1em minus .1em}{0.3em}
