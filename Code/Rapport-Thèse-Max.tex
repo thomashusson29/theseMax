@@ -1,0 +1,991 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+\definecolor{mainblue}{HTML}{1F4E79}
+\definecolor{subblue}{HTML}{3C78D8}
+\definecolor{lightgray}{gray}{0.30}
+
+% Niveau 1 (#) : grand + trait sous le titre (pas de #1)
+\titleformat{\section}{\normalfont\bfseries\color{mainblue}\huge}{\thesection}{1em}{}[\vspace{0.3em}\titlerule]
+\titlespacing*{\section}{0pt}{1.8em plus .5em minus .5em}{1em}
+
+% Niveau 2 (##) : grand + trait (pas de #1)
+\titleformat{\subsection}{\normalfont\bfseries\color{subblue}\Large}{\thesubsection}{1em}{}[\vspace{0.2em}\titlerule]
+\titlespacing*{\subsection}{0pt}{1.4em plus .3em minus .3em}{0.8em}
+
+% Niveau 3 (###)
+\titleformat{\subsubsection}{\normalfont\bfseries\color{black}\large}{\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{1em plus .3em minus .3em}{0.6em}
+
+% Niveau 4 (####)
+\titleformat{\paragraph}{\normalfont\bfseries\normalsize\color{lightgray}}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{0.8em plus .2em minus .2em}{0.4em}
+
+% Niveau 5 (#####)
+\titleformat{\subparagraph}{\normalfont\bfseries\small\color{gray!70!black}}{\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{0pt}{0.5em plus .1em minus .1em}{0.3em}
+\usepackage{etoolbox}     % utile pour redéfinir \tableofcontents
+\renewcommand{\contentsname}{}   % enlève le titre "Contents"
+% -- TOC compact (~1.5x plus petit) --
+\AtBeginDocument{
+  \addtocontents{toc}{\protect\smallskip}
+  \let\oldtableofcontents\tableofcontents
+  \renewcommand{\tableofcontents}{
+    \begingroup
+      \footnotesize                % <- ~1.5x plus petit
+      \setlength{\parskip}{2pt}    % espacement entre entrées
+      \oldtableofcontents
+    \endgroup
+  }
+}
+
+\setcounter{tocdepth}{5}
+\makeatletter
+\renewcommand{\@tocrmarg}{0pt}
+\makeatother
+\usepackage{fvextra}
+\usepackage[section]{placeins}
+\usepackage{needspace}
+\usepackage{float}
+\floatplacement{figure}{H}
+\floatplacement{table}{H}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,fontsize=\small,commandchars=\\\{\},samepage=true}
+\newcommand{\sectionbreak}{\needspace{5\baselineskip}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\usepackage[most]{tcolorbox}
+\newtcolorbox{graybox}{colback=gray!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{orangebox}{colback=orange!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{codebox}{breakable,colback=blue!5!white,colframe=blue!50!black,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\DefineVerbatimEnvironment{CodeBoxContent}{Verbatim}{fontsize=\small,breaklines,breakanywhere}
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\Alph{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{anyfontsize}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Stats Thèse Max},
+  pdfauthor={Thomas HUSSON},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Stats Thèse Max}
+\author{Thomas HUSSON}
+\date{2025-10-21}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{5}
+\tableofcontents
+}
+\section{Import de la base de
+données}\label{import-de-la-base-de-donnuxe9es}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{gs4\_deauth}\NormalTok{()}
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{read\_sheet}\NormalTok{(}
+  \StringTok{"https://docs.google.com/spreadsheets/d/1eWwPK8G89G6nWTDzWimcCa8EOWqval8RPvwykZmfGoI/edit?gid=803820517\#gid=803820517"}\NormalTok{,}
+  \AttributeTok{sheet =} \StringTok{"CopieThomas"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Statistiques descriptives}\label{statistiques-descriptives}
+
+\subsection{Recodages des variables pour
+lisibilité}\label{recodages-des-variables-pour-lisibilituxe9}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Factor l\textquotesingle{}Âge dans le bon ordre : }
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{3\_Age}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{factor}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{3\_Age}\StringTok{\textasciigrave{}}\NormalTok{,}
+                          \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Entre 30 et 39 ans"}\NormalTok{,}
+                                     \StringTok{"Entre 40 et 49 ans"}\NormalTok{,}
+                                     \StringTok{"Entre 50 et 59 ans"}\NormalTok{,}
+                                     \StringTok{"Entre 60 et 69 ans"}\NormalTok{,}
+                                     \StringTok{"Plus de 70 ans"}\NormalTok{)))}
+
+
+\CommentTok{\#Factor la durée d\textquotesingle{}installation dans le bon ordre }
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{6\_Duree\_d\_installation}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{factor}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{6\_Duree\_d\_installation}\StringTok{\textasciigrave{}}\NormalTok{,}
+                                           \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Moins de 5 ans"}\NormalTok{,}
+                                                      \StringTok{"Entre 5 et 9 ans"}\NormalTok{,}
+                                                      \StringTok{"Entre 10 et 19 ans"}\NormalTok{,}
+                                                      \StringTok{"Plus de 20 ans"}\NormalTok{)))}
+
+
+
+\CommentTok{\#Factor les types d\textquotesingle{}activité dans le bon ordre }
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{7\_Type\_d\_activite}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{factor}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{7\_Type\_d\_activite}\StringTok{\textasciigrave{}}\NormalTok{,}
+                                      \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Exclusivement libéral en cabinet"}\NormalTok{,}
+                                                 \StringTok{"Essentiellement libéral avec activité universitaire"}\NormalTok{,}
+                                                 \StringTok{"Essentiellement libéral avec activité de régulation/PDSA"}\NormalTok{,}
+                                                 \StringTok{"Mixte (libéral + hospitalière)"}\NormalTok{,}
+                                                 \StringTok{"Autre"}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Description de chaques médecins : par
+graphiques}\label{description-de-chaques-muxe9decins-par-graphiques}
+
+\subsubsection{Connaissance MCS}\label{connaissance-mcs}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable : df\$\texttt{1\_Connaissance\_MCS\_binaire}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert connaissance-1} \end{center}
+
+\subsubsection{Sexe}\label{sexe}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert sexe-1} \end{center}
+
+\subsubsection{Âge}\label{uxe2ge}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-5-1} \end{center}
+
+\subsubsection{Lieu d'installation : carte des
+répondants}\label{lieu-dinstallation-carte-des-ruxe9pondants}
+
+\subsubsection{Durée d'installation :}\label{duruxe9e-dinstallation}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-7-1} \end{center}
+
+\subsubsection{Type d'activité :}\label{type-dactivituxe9}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-8-1} \end{center}
+
+Représentation en camembert :
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert_type_activite-1} \end{center}
+
+\subsubsection{Types de visites}\label{types-de-visites}
+
+\begin{itemize}
+\tightlist
+\item
+  Variables incluses : 8\_\_consultations\_rdv
+  8\_\_consultations\_sans\_rdv\_
+  8\_consultations\_:\emph{creneaux\_d\_urgence 8\_Visites 8\_Cs\_autre
+  8bis\_En\_cas\_de\_reponse}''Autre''\emph{merci\_de\_preciser}{[}Commentaire{]}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-9-1} \end{center}
+
+\subsubsection{Ressenti sur le délai d'intervention du SMUR
+:}\label{ressenti-sur-le-duxe9lai-dintervention-du-smur}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable : df\$\texttt{9\_Ressenti\_delai\_SMUR}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-10-1} \end{center}
+
+\begin{itemize}
+\item
+  \textbf{AUTRES} : représentés par :
+
+  \begin{itemize}
+  \item
+    ``\emph{Pas ou peu d'urgences vraies. Pour la semi urgence, on a
+    toujours réussi à se dépatouiller : amélioration de l'état clinique
+    par les médicaments sur place ou récupérés à la pharma en urgence
+    par la famille ou alors transport hospitalier ''\,''rapide''\,'' 0
+    médicalisé par la famille. Par contre en cas d'urgence réelle, je
+    pressens que l'équation pourrait être problématique.}''
+  \item
+    ``\emph{Il y a un cabinet qui gère les urgences à 50 mètres du
+    mien}''
+  \item
+    ``\emph{Délai de prise en charge fortement modulé selon
+    l'utilisation de l'hélicoptère ou 0, intérêt+++ de la télé médecine
+    au sein du CH de Cilaos}''
+  \item
+    ``\emph{les délais sont longs mais la perception dépend de
+    l'urgence}''
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Idem mais camembert avec mêmes
+couleurs}\label{idem-mais-camembert-avec-muxeames-couleurs}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable : df\$\texttt{9\_Ressenti\_delai\_SMUR}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert-1} \end{center}
+
+\paragraph{Carte}\label{carte}
+
+\subsubsection{Perte de chance dans le secteur liée au délai
+d'intervention du
+SMUR}\label{perte-de-chance-dans-le-secteur-liuxe9e-au-duxe9lai-dintervention-du-smur}
+
+\paragraph{Histogramme}\label{histogramme}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-12-1} \end{center}
+
+\paragraph{Camembert}\label{camembert}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-13-1} \end{center}
+
+\paragraph{Carte}\label{carte-1}
+
+\paragraph{Tableau récapitulatif}\label{tableau-ruxe9capitulatif}
+
+2 colonnes incluses :
+
+\begin{itemize}
+\item
+  `9\_Ressenti\_delai\_SMUR``
+\item
+  `10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur``
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cols\_to\_include2 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"9\_Ressenti\_delai\_SMUR"}\NormalTok{,}
+  \StringTok{"10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur"}
+\NormalTok{)}
+    
+\CommentTok{\#Ordonner les facteurs pour lisibilité}
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{9\_Ressenti\_delai\_SMUR}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{factor}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{9\_Ressenti\_delai\_SMUR}\StringTok{\textasciigrave{}}\NormalTok{,}
+                                          \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Délai ok"}\NormalTok{,}
+                                                     \StringTok{"Plutôt bien mais parfois gêné"}\NormalTok{,}
+                                                     \StringTok{"Délai trop long, en difficulté"}\NormalTok{,}
+                                                     \StringTok{"Autre"}\NormalTok{)))}
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{factor}\NormalTok{(}\StringTok{\textasciigrave{}}\AttributeTok{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur}\StringTok{\textasciigrave{}}\NormalTok{,}
+                                                                                   \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"non, pas du tout"}\NormalTok{,}\StringTok{"Plutôt non"}\NormalTok{,}\StringTok{"Plutôt oui"}\NormalTok{,}\StringTok{"oui, tout à fait"}\NormalTok{)))}
+
+\NormalTok{table2 }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{tbl\_summary}\NormalTok{(}
+    \AttributeTok{include =} \FunctionTok{all\_of}\NormalTok{(cols\_to\_include2), }\CommentTok{\# colonnes à inclure}
+    \AttributeTok{statistic =} \FunctionTok{list}\NormalTok{(}
+      \FunctionTok{all\_categorical}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"\{n\} (\{p\}\%)"} \CommentTok{\# n (\%) pour les variables catégorielles}
+\NormalTok{    ),}
+    \AttributeTok{label =} \FunctionTok{list}\NormalTok{(}
+      \StringTok{\textasciigrave{}}\AttributeTok{9\_Ressenti\_delai\_SMUR}\StringTok{\textasciigrave{}} \OtherTok{=} \StringTok{"Ressenti sur le délai d\textquotesingle{}intervention du SMUR"}\NormalTok{,}
+      \StringTok{\textasciigrave{}}\AttributeTok{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur}\StringTok{\textasciigrave{}} \OtherTok{=} \StringTok{"Perte de chance dans votre secteur liée au délai d\textquotesingle{}intervention"}
+\NormalTok{    ),}
+    \AttributeTok{missing =} \StringTok{"no"} \CommentTok{\# ne pas inclure les valeurs manquantes dans le tableau}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{modify\_header}\NormalTok{(}\AttributeTok{label =} \StringTok{"**Caractéristiques**"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \CommentTok{\# modifier l\textquotesingle{}en{-}tête de la colonne des labels}
+  \FunctionTok{bold\_labels}\NormalTok{() }\CommentTok{\# mettre en gras les labels des variables}
+
+\NormalTok{table2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}[t]
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lc}
+\toprule
+\textbf{Caractéristiques} & \textbf{N = 54}\textsuperscript{\textit{1}} \\ 
+\midrule\addlinespace[2.5pt]
+{\bfseries Ressenti sur le délai d'intervention du SMUR} &  \\ 
+    Délai ok & 0 (0\%) \\ 
+    Plutôt bien mais parfois gêné & 32 (76\%) \\ 
+    Délai trop long, en difficulté & 5 (12\%) \\ 
+    Autre & 5 (12\%) \\ 
+{\bfseries Perte de chance dans votre secteur liée au délai d'intervention} &  \\ 
+    non, pas du tout & 3 (5.6\%) \\ 
+    Plutôt non & 18 (33\%) \\ 
+    Plutôt oui & 29 (54\%) \\ 
+    oui, tout à fait & 4 (7.4\%) \\ 
+\bottomrule
+\end{tabular*}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}n (\%)\\
+\end{minipage}
+\end{table}
+
+\paragraph{Perte de chance binaire liée au délai
+d'intervention}\label{perte-de-chance-binaire-liuxe9e-au-duxe9lai-dintervention}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{slices }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(df}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}\StringTok{\textasciigrave{}}\NormalTok{)}
+\NormalTok{labels }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Non"}\NormalTok{, }\StringTok{"Oui"}\NormalTok{)}
+\NormalTok{pct }\OtherTok{\textless{}{-}} \FunctionTok{round}\NormalTok{(slices }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(slices) }\SpecialCharTok{*} \DecValTok{100}\NormalTok{)}
+\NormalTok{labels }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(labels, pct) }\CommentTok{\# Ajoute les pourcentages aux labels}
+\NormalTok{labels }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(labels, }\StringTok{"\%"}\NormalTok{, }\AttributeTok{sep =} \StringTok{""}\NormalTok{) }\CommentTok{\# Ajoute le symbole \%}
+\FunctionTok{pie}\NormalTok{(slices,}
+    \AttributeTok{main =} \StringTok{"Perte de chance binaire liée au délai d\textquotesingle{}intervention"}\NormalTok{,}
+    \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"lightcoral"}\NormalTok{, }\StringTok{"lightgreen"}\NormalTok{),}
+    \AttributeTok{labels =}\NormalTok{ labels}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-16-1} \end{center}
+
+\subsubsection{Réseau MCS est-il pertinent pour la Réunion
+?}\label{ruxe9seau-mcs-est-il-pertinent-pour-la-ruxe9union}
+
+\paragraph{Histogramme}\label{histogramme-1}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable : df\$\texttt{11\_Reseau\_MCS\_pertinent\_pour\_La\_Reunion}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-18-1} \end{center}
+
+\paragraph{Camembert}\label{camembert-1}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable : df\$\texttt{11\_Reseau\_MCS\_pertinent\_pour\_La\_Reunion}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert pertinent-1} \end{center}
+
+\subsubsection{Délai depuis dernière formation aux soins
+d'urgences}\label{duxe9lai-depuis-derniuxe8re-formation-aux-soins-durgences}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable df\$\texttt{12\_Dernieres\_formations\_d\_urgence}
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-19-1} \end{center}
+
+\textbf{Visualisation du rapport entre l'Âge et le délai depuis la
+dernière formation aux soins d'urgence}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-20-1} \end{center}
+
+\hfill\break
+\hfill\break
+
+\textbf{Autres visualisations pour monsieur}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-21-1} \end{center}
+
+\hfill\break
+\hfill\break
+\#\#\# Cabinet adapté aux urgences
+
+\begin{itemize}
+\tightlist
+\item
+  Variable df\$\texttt{13\_Cabinet\_adapte\_aux\_urgences}
+\end{itemize}
+
+\paragraph{Histogramme}\label{histogramme-2}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-22-1} \end{center}
+
+\paragraph{Camembert}\label{camembert-2}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert cabinet-1} \end{center}
+
+\hfill\break
+\hfill\break
+\hfill\break
+\hfill\break
+\#\#\# Intérêt pour une formation complémentaire en urgence
+
+\begin{itemize}
+\tightlist
+\item
+  Variable :
+  df\$\texttt{14\_Interet\_pour\_formation\_complementaire\_en\_urgence}
+\end{itemize}
+
+\paragraph{Histogramme}\label{histogramme-3}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-23-1} \end{center}
+
+\paragraph{Camembert}\label{camembert-3}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert formation urgence-1} \end{center}
+
+\hfill\break
+\hfill\break
+\hfill\break
+\hfill\break
+\#\#\# Formation incite à être MCS
+
+\begin{itemize}
+\tightlist
+\item
+  Variable :
+  df\$\texttt{15\_Si\_+\_forme\_aux\_urgences:\_incitation\_à\_devenir\_MCS}
+\end{itemize}
+
+\paragraph{Histogramme}\label{histogramme-4}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-24-1} \end{center}
+
+\paragraph{Camembert}\label{camembert-4}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert incitation MCS-1} \end{center}
+
+\hfill\break
+\hfill\break
+\hfill\break
+\hfill\break
+
+\subsubsection{Matériel incite à être
+MCS}\label{matuxe9riel-incite-uxe0-uxeatre-mcs}
+
+\begin{itemize}
+\tightlist
+\item
+  Variable :
+  df\$\texttt{16\_Materiel\_adapte\_à\_l’urgence\_:\_incitation\_à\_devenir\_MCS}
+\end{itemize}
+
+\paragraph{Histogramme}\label{histogramme-5}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/unnamed-chunk-25-1} \end{center}
+
+\paragraph{Camembert}\label{camembert-5}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/camembert incitation materiel-1} \end{center}
+
+\hfill\break
+\hfill\break
+\#\# Motivations et freins
+
+\subsubsection{Motivations à devenir
+MCS}\label{motivations-uxe0-devenir-mcs}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/motivations-1} \end{center}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/motivations2-1} \end{center}
+
+\hfill\break
+\hfill\break
+\#\#\# Freins
+
+\begin{itemize}
+\item
+  Variables :
+
+  \begin{itemize}
+  \item
+    df\$\texttt{18\_Freins\_{[}Charge\_de\_travail\_supplementaire{]}}
+  \item
+    df\$\texttt{18\_Freins\_{[}Manque\_de\_formation\_en\_urgence{]}}
+  \item
+    df\$\texttt{18\_Freins\_{[}Contraintes\_administratives\_ou\_organisationnelles{]}}
+  \end{itemize}
+\end{itemize}
+
+library(tidyverse)
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/freins-1} \end{center}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/freins-2} \end{center}
+
+\hfill\break
+\hfill\break
+\#\# Tableau 1 : Caractéristiques démographiques et professionnelles des
+médecins généralistes selon le mode d'exercice
+
+\begin{table}[t]
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lc}
+\toprule
+\textbf{Caractéristiques} & \textbf{N = 54}\textsuperscript{\textit{1}} \\ 
+\midrule\addlinespace[2.5pt]
+{\bfseries Connaissance du réseau MCS} & 4 (7.4\%) \\ 
+{\bfseries Sexe (Homme)} & 29 (54\%) \\ 
+{\bfseries Âge} &  \\ 
+    Entre 30 et 39 ans & 17 (31\%) \\ 
+    Entre 40 et 49 ans & 17 (31\%) \\ 
+    Entre 50 et 59 ans & 6 (11\%) \\ 
+    Entre 60 et 69 ans & 12 (22\%) \\ 
+    Plus de 70 ans & 2 (3.7\%) \\ 
+{\bfseries Durée d'installation (années)} &  \\ 
+    Moins de 5 ans & 21 (39\%) \\ 
+    Entre 5 et 9 ans & 6 (11\%) \\ 
+    Entre 10 et 19 ans & 11 (20\%) \\ 
+    Plus de 20 ans & 16 (30\%) \\ 
+{\bfseries Type d'activité} &  \\ 
+    Exclusivement libéral en cabinet & 44 (81\%) \\ 
+    Essentiellement libéral avec activité universitaire & 3 (5.6\%) \\ 
+    Essentiellement libéral avec activité de régulation/PDSA & 2 (3.7\%) \\ 
+    Mixte (libéral + hospitalière) & 2 (3.7\%) \\ 
+    Autre & 3 (5.6\%) \\ 
+{\bfseries Consultations avec rendez-vous} & 25 (46\%) \\ 
+{\bfseries Consultations sans rendez-vous} & 48 (89\%) \\ 
+{\bfseries Visites} & 39 (72\%) \\ 
+{\bfseries Autres consultations} & 2 (3.7\%) \\ 
+\bottomrule
+\end{tabular*}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}n (\%)\\
+\end{minipage}
+\end{table}
+
+\section{Comparaison sur CJP : différences entre interessé et non
+interessé}\label{comparaison-sur-cjp-diffuxe9rences-entre-interessuxe9-et-non-interessuxe9}
+
+\begin{itemize}
+\item
+  CJP : recodé en \texttt{df\$CJP} codé ``1''
+\item
+  Utiliser le recodage binaire pour interprétation plus facile :
+
+  \begin{itemize}
+  \item
+    connaissance \textless- df\$\texttt{1\_Connaissance\_MCS\_binaire}
+  \item
+    age \textless- df\$`3\_Age\_inf\_50a
+  \item
+    sexe \textless- df\$\texttt{2\_Sexe\_Homme}
+  \item
+    profession\_isolee \textless- df\$\texttt{4\_Profession\_isolee}
+  \item
+    duree\_installation \textless-
+    df\$\texttt{6\_Duree\_d\_installation\_inf\_10ans}
+  \item
+    activite\_autre \textless-
+    df\$\texttt{7\_Activite\_autre\_que\_liberal\_exclusif}
+  \item
+    ressenti\_delai \textless-
+    df\$\texttt{9\_Ressenti\_delai\_SMUR\_genee\_YN}
+  \item
+    perte\_chance \textless-
+    df\$\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+  \end{itemize}
+\end{itemize}
+
+\begin{table}[t]
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccc}
+\toprule
+\textbf{Caractéristiques} & \textbf{Intéressé par MCS}  N = 24\textsuperscript{\textit{1}} & \textbf{Non intéressé par MCS}  N = 30\textsuperscript{\textit{1}} & \textbf{p-value}\textsuperscript{\textit{2}} \\ 
+\midrule\addlinespace[2.5pt]
+{\bfseries Connaissance du dispositif MCS} & 3 (13\%) & 1 (3.3\%) & 0.3 \\ 
+{\bfseries Âge inférieur à 50 ans} & 17 (71\%) & 17 (57\%) & 0.3 \\ 
+{\bfseries Sexe (Homme)} & 15 (63\%) & 14 (47\%) & 0.2 \\ 
+{\bfseries Durée d'installation inférieure à 10 ans} & 12 (50\%) & 15 (50\%) & >0.9 \\ 
+{\bfseries Activité autre que libéral exclusif} & 6 (25\%) & 4 (13\%) & 0.3 \\ 
+{\bfseries Consultations avec rendez-vous} & 8 (33\%) & 17 (57\%) & 0.088 \\ 
+{\bfseries Consultations sans rendez-vous} & 21 (88\%) & 27 (90\%) & >0.9 \\ 
+{\bfseries Visites} & 19 (79\%) & 20 (67\%) & 0.3 \\ 
+{\bfseries Autres consultations} & 2 (8.3\%) & 0 (0\%) & 0.2 \\ 
+{\bfseries Ressenti du délai d'intervention du SMUR gêné} & 20 (83\%) & 17 (57\%) & 0.036 \\ 
+{\bfseries Perte de chance liée au délai d'intervention (binaire)} & 18 (75\%) & 15 (50\%) & 0.061 \\ 
+{\bfseries Dernière formation aux soins d'urgence < 5 ans (binaire)} & 11 (46\%) & 10 (33\%) & 0.3 \\ 
+{\bfseries Cabinet adapté aux urgences (binaire)} & 14 (58\%) & 10 (33\%) & 0.066 \\ 
+{\bfseries Intérêt pour une formation complémentaire en urgence (binaire)} & 24 (100\%) & 17 (57\%) & <0.001 \\ 
+\bottomrule
+\end{tabular*}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}n (\%)\\
+\textsuperscript{\textit{2}}Fisher's exact test; Pearson's Chi-squared test\\
+\end{minipage}
+\end{table}
+
+\begin{itemize}
+\item
+  Je trouve ce tableau interessant !
+\item
+  Les médecins interssés par être MCS sont significativement :
+
+  \begin{itemize}
+  \item
+    Plus gêné par le délai d'intervention du SMUR (p \textless{} 0.029)
+  \item
+    Ont un cabinet + adapté aux urgences p \textless{} 0.05)
+  \item
+    Sont + intéressés par une formation complémentaire en urgence (p
+    \textless{} 0.001)
+  \item
+    Et d'autres trucs mais regarde
+  \end{itemize}
+\end{itemize}
+
+Ce tableau est top mais ne permet pas vraiment de \textbf{QUANTIFIER} à
+quel point ces facteurs sont associés à l'intérêt pour devenir MCS.
+
+\section{Analyse univariée sur facteurs associés à l'intérêt pour
+devenir MCS
+(CJP)}\label{analyse-univariuxe9e-sur-facteurs-associuxe9s-uxe0-lintuxe9ruxeat-pour-devenir-mcs-cjp}
+
+\begin{itemize}
+\item
+  Principe de l'analyse univariée : on compare les caractéristiques des
+  médecins selon leur intérêt (oui/non) pour devenir médecin
+  correspondant du SAMU dans le cadre du dispositif MCS.
+\item
+  Variable d'intérêt : \texttt{df\$CJP} (intérêt pour devenir MCS)
+\item
+  Interprétation :de l'analyse :
+
+  \begin{itemize}
+  \item
+    Pour chaque variable, on compare la répartition entre les médecins
+    intéressés et non intéressés.
+  \item
+    Les p-values indiquent si les différences observées sont
+    statistiquement significatives.
+  \item
+    Cela permet d'identifier les facteurs potentiellement associés à
+    l'intérêt pour devenir MCS.
+  \end{itemize}
+\item
+  Différence avec une multivariée :
+
+  \begin{itemize}
+  \item
+    L'analyse univariée examine chaque variable indépendamment, tandis
+    que la multivariée ajuste pour plusieurs variables simultanément.
+  \item
+    La multivariée permet d'identifier les facteurs indépendamment
+    associés à l'intérêt pour devenir MCS, en tenant compte des
+    interactions entre variables.
+  \item
+    Les résultats peuvent différer entre les deux analyses en raison de
+    la prise en compte des confounders dans la multivariée.
+  \item
+    L'univariée est souvent une étape préliminaire avant la multivariée
+    pour sélectionner les variables à inclure.
+  \item
+    En résumé, l'univariée identifie des associations potentielles,
+    tandis que la multivariée évalue les associations indépendantes.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Analyse multivariée : régression
+logistique}\label{analyse-multivariuxe9e-ruxe9gression-logistique}
+
+\subsubsection{Méthode}\label{muxe9thode}
+
+\begin{itemize}
+\item
+  Choix des variables à inclure :
+
+  \begin{itemize}
+  \item
+    Nombre limité de variables à inclure car peu de données
+  \item
+    Donc se limiter à
+
+    \begin{itemize}
+    \item
+      Peu de variables inclure (\emph{en théorie 1 variable par
+      évènement CJP codé ``Oui'' : donc dans ce cas entre 2 et 3
+      variables maximum car 25 médecins interessés par être MCS})
+    \item
+      Seulement les variables qui ont montré une association
+      significative ou presque en univarié (pas d'intérêt à inclure des
+      variables qui n'ont pas d'effet propre)
+    \end{itemize}
+  \item
+    Méthode utilisé : régression logistique avec correction Firth (évite
+    les problèmes de séparation complète ou quasi complète dans les
+    modèles de régression logistique, surtout avec de petits
+    échantillons ou des événements rares)
+  \end{itemize}
+\item
+  Interprétation :
+
+  \begin{itemize}
+  \item
+    Odds Ratio (OR) : mesure de l'association entre une variable
+    indépendante et la probabilité d'être intéressé pour devenir MCS.
+  \item
+    Intervalle de confiance (IC) à 95\% : fournie une estimation de la
+    précision de l'OR.
+  \item
+    p-value : indique si l'association est statistiquement significative
+    (généralement p \textless{} 0.05).
+  \item
+    Un OR \textgreater{} 1 indique une association positive, tandis
+    qu'un OR \textless{} 1 indique une association négative.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Exemple : un OR de 2 signifie que les médecins avec cette
+      caractéristique ont deux fois plus de chances d'être intéressés
+      pour devenir MCS par rapport à ceux sans cette caractéristique.
+    \end{itemize}
+  \item
+    Mutltivariée : on ajuste pour les autres variables incluses dans le
+    modèle, permettant d'isoler l'effet propre de chaque variable sur
+    l'intérêt pour devenir MCS.
+  \end{itemize}
+\end{itemize}
+
+logistf(formula =
+df\(`19_Apres_toutes_ces_informations,_si_le_dispositif_etait_lance_à_la_Reunion,_seriez-vous_interesses_pour_vous_former_et_devenir_medecin_correspondant_du_SAMU` ~
+    df\)\texttt{9\_Ressenti\_delai\_SMUR\_genee\_YN} +
+df\(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur_binaire` +
+        df\)\texttt{13\_Cabinet\_adapte\_aux\_urgences\_binaire} +
+df\$\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire},
+data = df)
+
+Model fitted by Penalized ML Coefficients: coef (Intercept) -5.0313406
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                        0.8755773
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+0.9527701
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                1.3618301
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+3.5201515 se(coef) (Intercept) 1.6199616
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                       0.7425533
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+0.7313179
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                               0.6911784
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+1.4115965 lower 0.95 (Intercept) -10.14562068
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                        -0.61822751
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+-0.51173187
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                 0.03509346
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+1.31360055 upper 0.95 (Intercept) -2.376497
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                         2.460271
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+2.542818
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                 2.891514
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+8.421345 Chisq (Intercept) 21.501326
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                        1.322511
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+1.625726
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                4.055035
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+12.882478 p (Intercept) 3.535841e-06
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                       2.501419e-01
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+2.022952e-01
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                               4.403981e-02
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+3.316727e-04 method (Intercept) 2
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                            2
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+2
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                    2
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+2
+
+Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+
+Likelihood ratio test=22.37358 on 4 df, p=0.0001688604, n=54 Wald test =
+11.32837 on 4 df, p = 0.02311124 Variable (Intercept) (Intercept)
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                                                             df\)\texttt{9\_Ressenti\_delai\_SMUR\_genee\_YN}
+df\(`10_Delai_d_intervention_:_perte_de_chance_dans_votre_secteur_binaire` df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                                             df\)\texttt{13\_Cabinet\_adapte\_aux\_urgences\_binaire}
+df\(`14_Interêt_pour_formation_complementaire_en_urgence_binaire`                   df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+OR (Intercept) 0.006530051
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                        2.400260630
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+2.592882341
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                                3.903330446
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+33.789546525 CI\_lower (Intercept) 3.924758e-05
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                       5.388988e-01
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+5.994565e-01
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                               1.035717e+00
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+3.719542e+00 CI\_upper (Intercept) 9.287538e-02
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                       1.170798e+01
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+1.271546e+01
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                               1.802056e+01
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+4.543009e+03 p\_value (Intercept) 3.535841e-06
+df\(`9_Ressenti_delai_SMUR_genee_YN`                                       2.501419e-01
+df\)\texttt{10\_Delai\_d\_intervention\_:\_perte\_de\_chance\_dans\_votre\_secteur\_binaire}
+2.022952e-01
+df\(`13_Cabinet_adapte_aux_urgences_binaire`                               4.403981e-02
+df\)\texttt{14\_Interêt\_pour\_formation\_complementaire\_en\_urgence\_binaire}
+3.316727e-04
+
+\begin{table}[t]
+\caption*{
+{\large \textbf{Analyse multivariée par régression logistique}} \\ 
+{\small Variables associées à l'intérêt pour devenir MCS}
+} 
+\fontsize{9.8pt}{11.7pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrlr}
+\toprule
+Variable & Odds Ratio & 95\% Confidence Interval & p-value \\ 
+\midrule\addlinespace[2.5pt]
+Gêne liée au délai du SMUR & 2.40 & 0.54 – 11.71 & 0.250 \\ 
+Perte de chance perçue dans le secteur & 2.59 & 0.6 – 12.72 & 0.202 \\ 
+Cabinet adapté aux urgences & 3.90 & 1.04 – 18.02 & 0.044 \\ 
+Intérêt pour formation complémentaire en urgence & 6.12 & 2.88 – 21.1 & 0.002 \\ 
+\bottomrule
+\end{tabular*}
+\end{table}
+
+Variable Odds Ratio 95\% Confidence Interval p-value Gêne liée au délai
+du SMUR 2.40 0.54 -- 11.71 0.250 Perte de chance perçue dans le secteur
+2.59 0.6 -- 12.72 0.202 Cabinet adapté aux urgences 3.90 1.04 -- 18.02
+0.044 Intérêt pour formation complémentaire en urgence 6.12 2.88 -- 21.1
+0.002
+
+\subsubsection{Interprétation :}\label{interpruxe9tation}
+
+Variables \textbf{significativement} et \textbf{indépendamment}
+associées à l'intérêt pour devenir MCS :
+
+\begin{itemize}
+\item
+  \textbf{Cabinet adapté aux urgences (OR = 3.90, p = 0.044)} : les
+  médecins ayant un cabinet adapté aux urgences ont environ 3.9 fois
+  plus de chances d'être intéressés pour devenir MCS par rapport à ceux
+  dont le cabinet n'est pas adapté, en ajustant pour les autres
+  variables du modèle.
+\item
+  \textbf{Intérêt pour une formation complémentaire en urgence (OR =
+  6.12, p = 0.002)} : les médecins intéressés par une formation
+  complémentaire en urgence ont environ 6.12 fois plus de chances d'être
+  intéressés pour devenir MCS par rapport à ceux qui ne le sont pas, en
+  tenant compte des autres facteurs.
+\end{itemize}
+
+Les autres variables (gêne liée au délai du SMUR et perte de chance
+perçue dans le secteur) ne sont pas statistiquement significatives dans
+ce modèle multivarié, suggérant qu'elles n'ont pas d'effet indépendant
+fort sur l'intérêt pour devenir MCS une fois les autres facteurs pris en
+compte.
+
+\subsection{Forest plot}\label{forest-plot}
+
+\begin{center}\includegraphics[width=1\linewidth]{Rapport-Thèse-Max_files/figure-latex/forest plot-1} \end{center}
+
+\section{CJP : carte}\label{cjp-carte}
+
+\end{document}

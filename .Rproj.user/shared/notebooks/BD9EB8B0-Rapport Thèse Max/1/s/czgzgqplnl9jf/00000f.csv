@@ -1,7 +1,0 @@
-"0","# Séparation des coordonnées (latitude / longitude)"
-"0","df <- df %>%"
-"0","  separate(`5_coordonnees_gps`, into = c(""lat"", ""lon""), sep = "","", remove = FALSE) %>%"
-"0","  mutate("
-"0","    lat = as.numeric(lat),"
-"0","    lon = as.numeric(lon)"
-"0","  )"
